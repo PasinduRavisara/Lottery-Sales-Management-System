@@ -41,7 +41,7 @@ A comprehensive web application for tracking daily lottery sales across differen
 
 ### Frontend
 
-- **Next.js 14** with TypeScript
+- **React** with TypeScript
 - **Tailwind CSS** for styling
 - **Framer Motion** for animations
 - **React Hook Form** for form management
