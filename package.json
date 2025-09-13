@@ -1,0 +1,27 @@
+{
+  "name": "lottery-sales-management-system",
+  "version": "1.0.0",
+  "description": "A comprehensive web application for tracking daily lottery sales across different brands and locations",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": [
+    "lottery",
+    "sales",
+    "management",
+    "react",
+    "nodejs",
+    "mysql"
+  ],
+  "author": "Lottery Sales Management Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
