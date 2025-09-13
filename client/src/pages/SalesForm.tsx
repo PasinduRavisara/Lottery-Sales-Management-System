@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Save, Eye, Trash2 } from "lucide-react";
+import { Save, Eye, Trash2, CheckCircle, AlertCircle } from "lucide-react";
 import Layout from "../components/Layout";
 import { DAYS_OF_WEEK, LOTTERY_BRANDS } from "../lib/constants";
+import { submissionsAPI } from "../lib/api";
 
 export default function SalesForm() {
   const [formData, setFormData] = useState({
@@ -24,6 +25,12 @@ export default function SalesForm() {
       sunday: 0,
     })),
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -64,6 +71,74 @@ export default function SalesForm() {
     );
   };
 
+  const resetForm = () => {
+    setFormData({
+      district: "",
+      city: "",
+      dealerName: "",
+      dealerNumber: "",
+      assistantName: "",
+      salesMethod: "",
+      salesLocation: "",
+      dailySales: LOTTERY_BRANDS.map((brand) => ({
+        brandName: brand,
+        monday: 0,
+        tuesday: 0,
+        wednesday: 0,
+        thursday: 0,
+        friday: 0,
+        saturday: 0,
+        sunday: 0,
+      })),
+    });
+    setSubmitStatus({ type: null, message: "" });
+  };
+
+  const handleSubmit = async (isDraft: boolean = false) => {
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: "" });
+
+    try {
+      const response = await submissionsAPI.create({
+        ...formData,
+        isDraft,
+      });
+
+      setSubmitStatus({
+        type: "success",
+        message: isDraft
+          ? "Form saved as draft successfully!"
+          : "Form submitted successfully!",
+      });
+
+      // Reset form after successful submission (only if not a draft)
+      if (!isDraft) {
+        setTimeout(() => {
+          resetForm();
+        }, 2000);
+      }
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      setSubmitStatus({
+        type: "error",
+        message:
+          error.response?.data?.message ||
+          "Failed to submit form. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmit(false); // Submit as final submission
+  };
+
+  const handleSaveDraft = () => {
+    handleSubmit(true); // Save as draft
+  };
+
   return (
     <Layout>
       <div className="max-w-6xl mx-auto space-y-6">
@@ -78,10 +153,31 @@ export default function SalesForm() {
           </div>
         </div>
 
+        {/* Status Message */}
+        {submitStatus.type && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`p-4 rounded-lg flex items-center space-x-2 ${
+              submitStatus.type === "success"
+                ? "bg-green-50 text-green-800 border border-green-200"
+                : "bg-red-50 text-red-800 border border-red-200"
+            }`}
+          >
+            {submitStatus.type === "success" ? (
+              <CheckCircle className="h-5 w-5" />
+            ) : (
+              <AlertCircle className="h-5 w-5" />
+            )}
+            <span>{submitStatus.message}</span>
+          </motion.div>
+        )}
+
         <motion.form
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
+          onSubmit={handleFormSubmit}
         >
           {/* General Information */}
           <div className="card">
@@ -280,17 +376,31 @@ export default function SalesForm() {
 
           {/* Action Buttons */}
           <div className="flex justify-end space-x-4">
-            <button type="button" className="btn-secondary">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={resetForm}
+              disabled={isSubmitting}
+            >
               <Trash2 className="h-4 w-4 mr-2" />
               Clear Form
             </button>
-            <button type="button" className="btn-secondary">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={handleSaveDraft}
+              disabled={isSubmitting}
+            >
               <Save className="h-4 w-4 mr-2" />
-              Save as Draft
+              {isSubmitting ? "Saving..." : "Save as Draft"}
             </button>
-            <button type="submit" className="btn-primary">
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={isSubmitting}
+            >
               <Eye className="h-4 w-4 mr-2" />
-              Submit
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </motion.form>
