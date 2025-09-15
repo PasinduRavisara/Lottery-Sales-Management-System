@@ -1,11 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Save, Eye, Trash2, CheckCircle, AlertCircle } from "lucide-react";
+import { Save, Eye, Trash2 } from "lucide-react";
 import Layout from "../components/Layout";
 import { DAYS_OF_WEEK, LOTTERY_BRANDS } from "../lib/constants";
 import { submissionsAPI } from "../lib/api";
+import toast from "react-hot-toast";
 
 export default function SalesForm() {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     district: "",
     city: "",
@@ -25,12 +29,6 @@ export default function SalesForm() {
       sunday: 0,
     })),
   });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<{
-    type: "success" | "error" | null;
-    message: string;
-  }>({ type: null, message: "" });
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -71,72 +69,93 @@ export default function SalesForm() {
     );
   };
 
-  const resetForm = () => {
-    setFormData({
-      district: "",
-      city: "",
-      dealerName: "",
-      dealerNumber: "",
-      assistantName: "",
-      salesMethod: "",
-      salesLocation: "",
-      dailySales: LOTTERY_BRANDS.map((brand) => ({
-        brandName: brand,
-        monday: 0,
-        tuesday: 0,
-        wednesday: 0,
-        thursday: 0,
-        friday: 0,
-        saturday: 0,
-        sunday: 0,
-      })),
-    });
-    setSubmitStatus({ type: null, message: "" });
+  const validateForm = () => {
+    const requiredFields = [
+      "district",
+      "city",
+      "dealerName",
+      "dealerNumber",
+      "assistantName",
+      "salesMethod",
+      "salesLocation",
+    ];
+
+    for (const field of requiredFields) {
+      if (
+        !formData[field as keyof typeof formData] ||
+        (formData[field as keyof typeof formData] as string).trim() === ""
+      ) {
+        return false;
+      }
+    }
+    return true;
   };
 
-  const handleSubmit = async (isDraft: boolean = false) => {
-    setIsSubmitting(true);
-    setSubmitStatus({ type: null, message: "" });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
 
     try {
-      const response = await submissionsAPI.create({
+      setIsLoading(true);
+      await submissionsAPI.create({
         ...formData,
-        isDraft,
+        isDraft: false,
       });
 
-      setSubmitStatus({
-        type: "success",
-        message: isDraft
-          ? "Form saved as draft successfully!"
-          : "Form submitted successfully!",
-      });
-
-      // Reset form after successful submission (only if not a draft)
-      if (!isDraft) {
-        setTimeout(() => {
-          resetForm();
-        }, 2000);
-      }
-    } catch (error: any) {
+      toast.success("Sales submission created successfully!");
+      navigate("/dashboard");
+    } catch (error) {
       console.error("Submission error:", error);
-      setSubmitStatus({
-        type: "error",
-        message:
-          error.response?.data?.message ||
-          "Failed to submit form. Please try again.",
-      });
+      toast.error("Failed to submit sales data");
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSubmit(false); // Submit as final submission
+  const handleSaveAsDraft = async () => {
+    try {
+      setIsLoading(true);
+      await submissionsAPI.create({
+        ...formData,
+        isDraft: true,
+      });
+
+      toast.success("Draft saved successfully!");
+    } catch (error) {
+      console.error("Save draft error:", error);
+      toast.error("Failed to save draft");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSaveDraft = () => {
-    handleSubmit(true); // Save as draft
+  const handleClearForm = () => {
+    if (window.confirm("Are you sure you want to clear all form data?")) {
+      setFormData({
+        district: "",
+        city: "",
+        dealerName: "",
+        dealerNumber: "",
+        assistantName: "",
+        salesMethod: "",
+        salesLocation: "",
+        dailySales: LOTTERY_BRANDS.map((brand) => ({
+          brandName: brand,
+          monday: 0,
+          tuesday: 0,
+          wednesday: 0,
+          thursday: 0,
+          friday: 0,
+          saturday: 0,
+          sunday: 0,
+        })),
+      });
+      toast.success("Form cleared successfully");
+    }
   };
 
   return (
@@ -153,31 +172,11 @@ export default function SalesForm() {
           </div>
         </div>
 
-        {/* Status Message */}
-        {submitStatus.type && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-lg flex items-center space-x-2 ${
-              submitStatus.type === "success"
-                ? "bg-green-50 text-green-800 border border-green-200"
-                : "bg-red-50 text-red-800 border border-red-200"
-            }`}
-          >
-            {submitStatus.type === "success" ? (
-              <CheckCircle className="h-5 w-5" />
-            ) : (
-              <AlertCircle className="h-5 w-5" />
-            )}
-            <span>{submitStatus.message}</span>
-          </motion.div>
-        )}
-
         <motion.form
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
-          onSubmit={handleFormSubmit}
+          onSubmit={handleSubmit}
         >
           {/* General Information */}
           <div className="card">
@@ -379,8 +378,8 @@ export default function SalesForm() {
             <button
               type="button"
               className="btn-secondary"
-              onClick={resetForm}
-              disabled={isSubmitting}
+              onClick={handleClearForm}
+              disabled={isLoading}
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Clear Form
@@ -388,19 +387,15 @@ export default function SalesForm() {
             <button
               type="button"
               className="btn-secondary"
-              onClick={handleSaveDraft}
-              disabled={isSubmitting}
+              onClick={handleSaveAsDraft}
+              disabled={isLoading}
             >
               <Save className="h-4 w-4 mr-2" />
-              {isSubmitting ? "Saving..." : "Save as Draft"}
+              {isLoading ? "Saving..." : "Save as Draft"}
             </button>
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={isSubmitting}
-            >
+            <button type="submit" className="btn-primary" disabled={isLoading}>
               <Eye className="h-4 w-4 mr-2" />
-              {isSubmitting ? "Submitting..." : "Submit"}
+              {isLoading ? "Submitting..." : "Submit"}
             </button>
           </div>
         </motion.form>

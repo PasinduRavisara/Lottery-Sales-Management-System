@@ -48,6 +48,16 @@ export const authAPI = {
   getMe: () => api.get("/auth/me"),
 
   setupDemo: () => api.post("/auth/setup-demo"),
+
+  getAllUsers: () => api.get("/auth/users"),
+
+  createUser: (userData: {
+    username: string;
+    password: string;
+    role: string;
+  }) => api.post("/auth/users", userData),
+
+  deleteUser: (userId: string) => api.delete(`/auth/users/${userId}`),
 };
 
 // Submissions API

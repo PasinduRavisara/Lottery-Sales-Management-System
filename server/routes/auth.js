@@ -133,4 +133,131 @@ router.post("/setup-demo", async (req, res) => {
   }
 });
 
+// Get all users (admin only)
+router.get(
+  "/users",
+  require("../middleware/auth").authenticateToken,
+  require("../middleware/auth").requireRole(["ADMIN"]),
+  async (req, res) => {
+    try {
+      const users = await prisma.user.findMany({
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      res.json({ users });
+    } catch (error) {
+      console.error("Get users error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
+
+// Create new user (admin only)
+router.post(
+  "/users",
+  [
+    require("../middleware/auth").authenticateToken,
+    require("../middleware/auth").requireRole(["ADMIN"]),
+    body("username")
+      .isLength({ min: 3 })
+      .withMessage("Username must be at least 3 characters"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+    body("role")
+      .isIn(["ADMIN", "DEALER"])
+      .withMessage("Role must be ADMIN or DEALER"),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const { username, password, role } = req.body;
+
+      // Check if username already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { username },
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      // Create user
+      const user = await prisma.user.create({
+        data: {
+          username,
+          passwordHash,
+          role,
+        },
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      res.status(201).json({
+        message: "User created successfully",
+        user,
+      });
+    } catch (error) {
+      console.error("Create user error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
+
+// Delete user (admin only)
+router.delete(
+  "/users/:id",
+  require("../middleware/auth").authenticateToken,
+  require("../middleware/auth").requireRole(["ADMIN"]),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Prevent admin from deleting their own account
+      if (id === req.user.id) {
+        return res
+          .status(400)
+          .json({ message: "Cannot delete your own account" });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id },
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      await prisma.user.delete({
+        where: { id },
+      });
+
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
+
 module.exports = router;

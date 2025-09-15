@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import SalesForm from "./pages/SalesForm";
 import Reports from "./pages/Reports";
 import Submission from "./pages/Submission";
+import UserManagement from "./pages/UserManagement";
 
 function App() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -55,6 +56,16 @@ function App() {
         path="/submission"
         element={
           isAuthenticated ? <Submission /> : <Navigate to="/login" replace />
+        }
+      />
+      <Route
+        path="/user-management"
+        element={
+          isAuthenticated ? (
+            <UserManagement />
+          ) : (
+            <Navigate to="/login" replace />
+          )
         }
       />
     </Routes>

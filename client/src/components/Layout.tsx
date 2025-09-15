@@ -10,6 +10,7 @@ import {
   LogOut,
   User,
   Settings,
+  Users,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 
@@ -32,7 +33,10 @@ export default function Layout({ children }: LayoutProps) {
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Sales Form", href: "/sales-form", icon: FileText },
     ...(user?.role === "ADMIN"
-      ? [{ name: "Reports", href: "/reports", icon: BarChart3 }]
+      ? [
+          { name: "Reports", href: "/reports", icon: BarChart3 },
+          { name: "User Management", href: "/user-management", icon: Users },
+        ]
       : []),
   ];
 
