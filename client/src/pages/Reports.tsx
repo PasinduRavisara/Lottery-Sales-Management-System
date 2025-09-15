@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Eye, Download, Filter } from "lucide-react";
+import { Eye, Download, Filter, Trash2 } from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import { submissionsAPI } from "../lib/api";
@@ -41,6 +40,23 @@ export default function Reports() {
     }
   };
 
+  const handleDeleteSubmission = async (submissionId: string, dealerName: string) => {
+    if (!window.confirm(`Are you sure you want to delete the submission for ${dealerName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await submissionsAPI.delete(submissionId);
+      toast.success("Submission deleted successfully!");
+      
+      // Remove the deleted submission from the local state
+      setSubmissions(prev => prev.filter(submission => submission.id !== submissionId));
+    } catch (error: any) {
+      console.error("Error deleting submission:", error);
+      toast.error(error.response?.data?.message || "Failed to delete submission");
+    }
+  };
+
   if (isLoading) {
     return (
       <Layout>
@@ -61,7 +77,9 @@ export default function Reports() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
             <p className="text-gray-600 mt-1">
-              View and analyze sales submissions
+              {user?.role === "ZONE_MANAGER" 
+                ? "View and analyze all sales submissions" 
+                : "View and manage your sales submissions"}
             </p>
           </div>
         </div>
@@ -69,7 +87,7 @@ export default function Reports() {
         <div className="card">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
-              All Submissions
+              {user?.role === "ZONE_MANAGER" ? "All Submissions" : "My Submissions"}
             </h2>
             <div className="flex items-center space-x-4">
               <button className="btn-secondary">
@@ -92,7 +110,9 @@ export default function Reports() {
                     <th className="table-cell text-left">Location</th>
                     <th className="table-cell text-center">Status</th>
                     <th className="table-cell text-center">Date</th>
-                    <th className="table-cell text-center">Submitted By</th>
+                    {user?.role === "ZONE_MANAGER" && (
+                      <th className="table-cell text-center">Submitted By</th>
+                    )}
                     <th className="table-cell text-center">Actions</th>
                   </tr>
                 </thead>
@@ -119,16 +139,30 @@ export default function Reports() {
                       <td className="table-cell text-center">
                         {new Date(submission.createdAt).toLocaleDateString()}
                       </td>
+                      {user?.role === "ZONE_MANAGER" && (
+                        <td className="table-cell text-center">
+                          {submission.user.username}
+                        </td>
+                      )}
                       <td className="table-cell text-center">
-                        {submission.user.username}
-                      </td>
-                      <td className="table-cell text-center">
-                        <Link
-                          to={`/submission?id=${submission.id}`}
-                          className="text-blue-600 hover:text-blue-800 p-1"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Link>
+                        <div className="flex items-center justify-center space-x-2">
+                          <Link
+                            to={`/submission?id=${submission.id}`}
+                            className="text-blue-600 hover:text-blue-800 p-1"
+                            title="View submission"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                          {user?.role === "FIELD_OFFICER" && (
+                            <button
+                              onClick={() => handleDeleteSubmission(submission.id, submission.dealerName)}
+                              className="text-red-600 hover:text-red-800 p-1"
+                              title="Delete submission"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -137,7 +171,19 @@ export default function Reports() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600">No submissions found</p>
+              <p className="text-gray-600">
+                {user?.role === "ZONE_MANAGER" 
+                  ? "No submissions found" 
+                  : "You haven't submitted any reports yet"}
+              </p>
+              {user?.role === "FIELD_OFFICER" && (
+                <Link 
+                  to="/sales-form" 
+                  className="text-blue-600 hover:text-blue-800 mt-2 inline-block"
+                >
+                  Create your first submission
+                </Link>
+              )}
             </div>
           )}
         </div>

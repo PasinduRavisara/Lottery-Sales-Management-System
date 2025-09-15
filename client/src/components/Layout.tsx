@@ -31,9 +31,9 @@ export default function Layout({ children }: LayoutProps) {
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Sales Form", href: "/sales-form", icon: FileText },
+    { name: "Reports", href: "/reports", icon: BarChart3 },
     ...(user?.role === "ZONE_MANAGER"
       ? [
-          { name: "Reports", href: "/reports", icon: BarChart3 },
           { name: "User Management", href: "/user-management", icon: Users },
         ]
       : []),

@@ -6,7 +6,7 @@ const { authenticateToken, requireRole } = require("../middleware/auth");
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Get all submissions (admin) or user's submissions
+// Get all submissions (zone manager) or user's submissions
 router.get("/", authenticateToken, async (req, res) => {
   try {
     const { page = 1, limit = 10, isDraft } = req.query;
@@ -14,8 +14,8 @@ router.get("/", authenticateToken, async (req, res) => {
 
     let whereClause = {};
 
-    // If user is dealer, only show their submissions
-    if (req.user.role === "DEALER") {
+    // If user is field officer, only show their submissions
+    if (req.user.role === "FIELD_OFFICER") {
       whereClause.userId = req.user.id;
     }
 
@@ -74,7 +74,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
     }
 
     // Check if user can access this submission
-    if (req.user.role === "DEALER" && submission.userId !== req.user.id) {
+    if (req.user.role === "FIELD_OFFICER" && submission.userId !== req.user.id) {
       return res.status(403).json({ message: "Access denied" });
     }
 
@@ -135,7 +135,7 @@ router.post(
 
         // Check if user can update this submission
         if (
-          req.user.role === "DEALER" &&
+          req.user.role === "FIELD_OFFICER" &&
           existingSubmission.userId !== req.user.id
         ) {
           return res.status(403).json({ message: "Access denied" });
@@ -257,7 +257,7 @@ router.delete("/:id", authenticateToken, async (req, res) => {
     }
 
     // Check if user can delete this submission
-    if (req.user.role === "DEALER" && submission.userId !== req.user.id) {
+    if (req.user.role === "FIELD_OFFICER" && submission.userId !== req.user.id) {
       return res.status(403).json({ message: "Access denied" });
     }
 
