@@ -91,48 +91,6 @@ router.post("/logout", (req, res) => {
   res.json({ message: "Logout successful" });
 });
 
-// Create demo users (for development)
-router.post("/setup-demo", async (req, res) => {
-  try {
-    // Check if users already exist
-    const existingUsers = await prisma.user.count();
-    if (existingUsers > 0) {
-      return res.status(400).json({ message: "Demo users already exist" });
-    }
-
-    // Create demo zone manager user
-    const zoneManagerPassword = await bcrypt.hash("admin123", 10);
-    const zoneManager = await prisma.user.create({
-      data: {
-        username: "admin",
-        passwordHash: zoneManagerPassword,
-        role: "ZONE_MANAGER",
-      },
-    });
-
-    // Create demo field officer user
-    const fieldOfficerPassword = await bcrypt.hash("dealer123", 10);
-    const fieldOfficer = await prisma.user.create({
-      data: {
-        username: "dealer",
-        passwordHash: fieldOfficerPassword,
-        role: "FIELD_OFFICER",
-      },
-    });
-
-    res.json({
-      message: "Demo users created successfully",
-      users: [
-        { username: "admin", password: "admin123", role: "ZONE_MANAGER" },
-        { username: "dealer", password: "dealer123", role: "FIELD_OFFICER" },
-      ],
-    });
-  } catch (error) {
-    console.error("Setup demo error:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
 // Get all users (zone manager only)
 router.get(
   "/users",

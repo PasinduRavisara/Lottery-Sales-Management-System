@@ -47,8 +47,6 @@ export const authAPI = {
 
   getMe: () => api.get("/auth/me"),
 
-  setupDemo: () => api.post("/auth/setup-demo"),
-
   getAllUsers: () => api.get("/auth/users"),
 
   createUser: (userData: {

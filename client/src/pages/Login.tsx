@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, LogIn, User, Lock } from "lucide-react";
 import { useAuth } from "../lib/auth";
-import { authAPI } from "../lib/api";
 import toast from "react-hot-toast";
 
 export default function Login() {
@@ -43,18 +42,6 @@ export default function Login() {
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSetupDemo = async () => {
-    try {
-      setIsLoading(true);
-      await authAPI.setupDemo();
-      toast.success("Demo users created successfully!");
-    } catch (error) {
-      toast.error("Failed to setup demo users");
     } finally {
       setIsLoading(false);
     }
@@ -159,18 +146,23 @@ export default function Login() {
             </button>
           </div>
 
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={handleSetupDemo}
-              disabled={isLoading}
-              className="text-sm text-blue-600 hover:text-blue-500 disabled:opacity-50"
-            >
-              Setup Demo Users
-            </button>
-            <div className="mt-2 text-xs text-gray-500">
-              <p>Admin: username: admin, password: admin123</p>
-              <p>Dealer: username: dealer, password: dealer123</p>
+          <div className="text-center mt-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-blue-800 mb-2">
+                Account Information
+              </h3>
+              <div className="text-xs text-blue-700 space-y-1">
+                <p><strong>Zone Managers:</strong> Use your full name as username</p>
+                <p><strong>Field Officers:</strong> Use your full name as username</p>
+                <p><strong>Password format:</strong> firstname123</p>
+                <div className="mt-3 pt-2 border-t border-blue-200">
+                  <p className="text-blue-600">
+                    <strong>Examples:</strong>
+                  </p>
+                  <p>Username: "John Smith" → Password: "john123"</p>
+                  <p>Username: "G.A.R.S. Ranathunga" → Password: "ranathunga123"</p>
+                </div>
+              </div>
             </div>
           </div>
         </motion.form>

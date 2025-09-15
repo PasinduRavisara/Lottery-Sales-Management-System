@@ -9,7 +9,6 @@ import {
   BarChart3,
   LogOut,
   User,
-  Settings,
   Users,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
