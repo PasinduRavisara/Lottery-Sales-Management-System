@@ -14,7 +14,7 @@ interface User {
 }
 
 export default function UserManagement() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -26,12 +26,15 @@ export default function UserManagement() {
   });
 
   useEffect(() => {
+    // Wait for auth to finish loading before checking permissions
+    if (authLoading) return;
+
     if (user?.role !== "ADMIN") {
       toast.error("Access denied: Admin privileges required");
       return;
     }
     fetchUsers();
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchUsers = async () => {
     try {
@@ -92,6 +95,19 @@ export default function UserManagement() {
     }
   };
 
+  // Show loading while authentication is being checked
+  if (authLoading) {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show access denied only after auth has loaded and user is not admin
   if (user?.role !== "ADMIN") {
     return (
       <Layout>

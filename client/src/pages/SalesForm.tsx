@@ -104,8 +104,10 @@ const SalesForm = () => {
         isDraft: false,
       });
 
-      toast.success("Sales submission created successfully! You can submit another one.");
-      
+      toast.success(
+        "Sales submission created successfully! You can submit another one."
+      );
+
       // Reset form for next submission
       setFormData({
         district: "",
