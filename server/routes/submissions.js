@@ -74,7 +74,10 @@ router.get("/:id", authenticateToken, async (req, res) => {
     }
 
     // Check if user can access this submission
-    if (req.user.role === "FIELD_OFFICER" && submission.userId !== req.user.id) {
+    if (
+      req.user.role === "FIELD_OFFICER" &&
+      submission.userId !== req.user.id
+    ) {
       return res.status(403).json({ message: "Access denied" });
     }
 
@@ -257,7 +260,10 @@ router.delete("/:id", authenticateToken, async (req, res) => {
     }
 
     // Check if user can delete this submission
-    if (req.user.role === "FIELD_OFFICER" && submission.userId !== req.user.id) {
+    if (
+      req.user.role === "FIELD_OFFICER" &&
+      submission.userId !== req.user.id
+    ) {
       return res.status(403).json({ message: "Access denied" });
     }
 

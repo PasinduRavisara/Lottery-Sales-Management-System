@@ -40,20 +40,31 @@ export default function Reports() {
     }
   };
 
-  const handleDeleteSubmission = async (submissionId: string, dealerName: string) => {
-    if (!window.confirm(`Are you sure you want to delete the submission for ${dealerName}? This action cannot be undone.`)) {
+  const handleDeleteSubmission = async (
+    submissionId: string,
+    dealerName: string
+  ) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete the submission for ${dealerName}? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
     try {
       await submissionsAPI.delete(submissionId);
       toast.success("Submission deleted successfully!");
-      
+
       // Remove the deleted submission from the local state
-      setSubmissions(prev => prev.filter(submission => submission.id !== submissionId));
+      setSubmissions((prev) =>
+        prev.filter((submission) => submission.id !== submissionId)
+      );
     } catch (error: any) {
       console.error("Error deleting submission:", error);
-      toast.error(error.response?.data?.message || "Failed to delete submission");
+      toast.error(
+        error.response?.data?.message || "Failed to delete submission"
+      );
     }
   };
 
@@ -77,8 +88,8 @@ export default function Reports() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
             <p className="text-gray-600 mt-1">
-              {user?.role === "ZONE_MANAGER" 
-                ? "View and analyze all sales submissions" 
+              {user?.role === "ZONE_MANAGER"
+                ? "View and analyze all sales submissions"
                 : "View and manage your sales submissions"}
             </p>
           </div>
@@ -87,7 +98,9 @@ export default function Reports() {
         <div className="card">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
-              {user?.role === "ZONE_MANAGER" ? "All Submissions" : "My Submissions"}
+              {user?.role === "ZONE_MANAGER"
+                ? "All Submissions"
+                : "My Submissions"}
             </h2>
             <div className="flex items-center space-x-4">
               <button className="btn-secondary">
@@ -155,7 +168,12 @@ export default function Reports() {
                           </Link>
                           {user?.role === "FIELD_OFFICER" && (
                             <button
-                              onClick={() => handleDeleteSubmission(submission.id, submission.dealerName)}
+                              onClick={() =>
+                                handleDeleteSubmission(
+                                  submission.id,
+                                  submission.dealerName
+                                )
+                              }
                               className="text-red-600 hover:text-red-800 p-1"
                               title="Delete submission"
                             >
@@ -172,13 +190,13 @@ export default function Reports() {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-600">
-                {user?.role === "ZONE_MANAGER" 
-                  ? "No submissions found" 
+                {user?.role === "ZONE_MANAGER"
+                  ? "No submissions found"
                   : "You haven't submitted any reports yet"}
               </p>
               {user?.role === "FIELD_OFFICER" && (
-                <Link 
-                  to="/sales-form" 
+                <Link
+                  to="/sales-form"
                   className="text-blue-600 hover:text-blue-800 mt-2 inline-block"
                 >
                   Create your first submission

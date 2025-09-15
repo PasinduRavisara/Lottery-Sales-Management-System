@@ -1,12 +1,12 @@
 export const LOTTERY_BRANDS = [
-  "Lucky 7",
-  "Gold Rush",
-  "Mega Win",
-  "Fortune Wheel",
-  "Diamond Jackpot",
-  "Royal Flush",
-  "Golden Star",
-  "Lucky Draw",
+  "Supiri Dhana Sampatha",
+  "Ada Kotipathi",
+  "Lagna Wasanawe",
+  "Super Ball",
+  "Shanida",
+  "Kapruka",
+  "Jayoda",
+  "Sasiri",
 ];
 
 export const DAYS_OF_WEEK = [

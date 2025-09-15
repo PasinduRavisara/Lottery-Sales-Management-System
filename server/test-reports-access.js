@@ -5,12 +5,12 @@ const prisma = new PrismaClient();
 async function testReportsAccess() {
   try {
     console.log("🔍 Testing reports access for different roles...\n");
-    
+
     // Get a zone manager and field officer
     const zoneManager = await prisma.user.findFirst({
       where: { role: "ZONE_MANAGER" },
     });
-    
+
     const fieldOfficer = await prisma.user.findFirst({
       where: { role: "FIELD_OFFICER" },
     });
@@ -32,8 +32,10 @@ async function testReportsAccess() {
       },
     });
 
-    console.log(`🏢 Zone Manager can see: ${allSubmissions.length} total submissions`);
-    
+    console.log(
+      `🏢 Zone Manager can see: ${allSubmissions.length} total submissions`
+    );
+
     // Test Field Officer access (should see only their submissions)
     const fieldOfficerSubmissions = await prisma.salesSubmission.findMany({
       where: { userId: fieldOfficer.id },
@@ -44,17 +46,22 @@ async function testReportsAccess() {
       },
     });
 
-    console.log(`👨‍💼 Field Officer (${fieldOfficer.username}) can see: ${fieldOfficerSubmissions.length} of their own submissions`);
+    console.log(
+      `👨‍💼 Field Officer (${fieldOfficer.username}) can see: ${fieldOfficerSubmissions.length} of their own submissions`
+    );
 
     if (fieldOfficerSubmissions.length > 0) {
       console.log("\n📋 Field Officer's submissions:");
       fieldOfficerSubmissions.forEach((submission, index) => {
-        console.log(`   ${index + 1}. ${submission.dealerName} - ${submission.district}, ${submission.city}`);
+        console.log(
+          `   ${index + 1}. ${submission.dealerName} - ${
+            submission.district
+          }, ${submission.city}`
+        );
       });
     }
 
     console.log("\n✅ Role-based access test completed!");
-    
   } catch (error) {
     console.error("❌ Test error:", error);
   } finally {

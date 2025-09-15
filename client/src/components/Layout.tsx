@@ -33,9 +33,7 @@ export default function Layout({ children }: LayoutProps) {
     { name: "Sales Form", href: "/sales-form", icon: FileText },
     { name: "Reports", href: "/reports", icon: BarChart3 },
     ...(user?.role === "ZONE_MANAGER"
-      ? [
-          { name: "User Management", href: "/user-management", icon: Users },
-        ]
+      ? [{ name: "User Management", href: "/user-management", icon: Users }]
       : []),
   ];
 
