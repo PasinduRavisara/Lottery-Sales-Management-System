@@ -14,7 +14,7 @@ model User {
   id           String   @id @default(cuid())
   username     String   @unique
   passwordHash String   @map("password_hash")
-  role         UserRole @default(DEALER)
+  role         UserRole @default(FIELD_OFFICER)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -66,6 +66,6 @@ model DailySales {
 }
 
 enum UserRole {
-  ADMIN
-  DEALER
+  ZONE_MANAGER
+  FIELD_OFFICER
 }

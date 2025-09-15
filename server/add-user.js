@@ -83,8 +83,11 @@ async function createUser() {
       return;
     }
 
-    const role = await askQuestion("Role (ADMIN/DEALER) [DEALER]: ");
-    const userRole = role.toUpperCase() === "ADMIN" ? "ADMIN" : "DEALER";
+    const role = await askQuestion(
+      "Role (ZONE_MANAGER/FIELD_OFFICER) [FIELD_OFFICER]: "
+    );
+    const userRole =
+      role.toUpperCase() === "ZONE_MANAGER" ? "ZONE_MANAGER" : "FIELD_OFFICER";
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);

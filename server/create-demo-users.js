@@ -14,29 +14,29 @@ async function createDemoUsers() {
       return;
     }
 
-    // Create demo admin user
-    const adminPassword = await bcrypt.hash("admin123", 10);
-    const admin = await prisma.user.create({
+    // Create demo zone manager user
+    const zoneManagerPassword = await bcrypt.hash("admin123", 10);
+    const zoneManager = await prisma.user.create({
       data: {
         username: "admin",
-        passwordHash: adminPassword,
-        role: "ADMIN",
+        passwordHash: zoneManagerPassword,
+        role: "ZONE_MANAGER",
       },
     });
 
-    // Create demo dealer user
-    const dealerPassword = await bcrypt.hash("dealer123", 10);
-    const dealer = await prisma.user.create({
+    // Create demo field officer user
+    const fieldOfficerPassword = await bcrypt.hash("dealer123", 10);
+    const fieldOfficer = await prisma.user.create({
       data: {
         username: "dealer",
-        passwordHash: dealerPassword,
-        role: "DEALER",
+        passwordHash: fieldOfficerPassword,
+        role: "FIELD_OFFICER",
       },
     });
 
     console.log("Demo users created successfully:");
-    console.log("- Admin: username: admin, password: admin123");
-    console.log("- Dealer: username: dealer, password: dealer123");
+    console.log("- Zone Manager: username: admin, password: admin123");
+    console.log("- Field Officer: username: dealer, password: dealer123");
   } catch (error) {
     console.error("Error creating demo users:", error);
   } finally {

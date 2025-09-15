@@ -100,31 +100,31 @@ router.post("/setup-demo", async (req, res) => {
       return res.status(400).json({ message: "Demo users already exist" });
     }
 
-    // Create demo admin user
-    const adminPassword = await bcrypt.hash("admin123", 10);
-    const admin = await prisma.user.create({
+    // Create demo zone manager user
+    const zoneManagerPassword = await bcrypt.hash("admin123", 10);
+    const zoneManager = await prisma.user.create({
       data: {
         username: "admin",
-        passwordHash: adminPassword,
-        role: "ADMIN",
+        passwordHash: zoneManagerPassword,
+        role: "ZONE_MANAGER",
       },
     });
 
-    // Create demo dealer user
-    const dealerPassword = await bcrypt.hash("dealer123", 10);
-    const dealer = await prisma.user.create({
+    // Create demo field officer user
+    const fieldOfficerPassword = await bcrypt.hash("dealer123", 10);
+    const fieldOfficer = await prisma.user.create({
       data: {
         username: "dealer",
-        passwordHash: dealerPassword,
-        role: "DEALER",
+        passwordHash: fieldOfficerPassword,
+        role: "FIELD_OFFICER",
       },
     });
 
     res.json({
       message: "Demo users created successfully",
       users: [
-        { username: "admin", password: "admin123", role: "ADMIN" },
-        { username: "dealer", password: "dealer123", role: "DEALER" },
+        { username: "admin", password: "admin123", role: "ZONE_MANAGER" },
+        { username: "dealer", password: "dealer123", role: "FIELD_OFFICER" },
       ],
     });
   } catch (error) {
@@ -133,11 +133,11 @@ router.post("/setup-demo", async (req, res) => {
   }
 });
 
-// Get all users (admin only)
+// Get all users (zone manager only)
 router.get(
   "/users",
   require("../middleware/auth").authenticateToken,
-  require("../middleware/auth").requireRole(["ADMIN"]),
+  require("../middleware/auth").requireRole(["ZONE_MANAGER"]),
   async (req, res) => {
     try {
       const users = await prisma.user.findMany({
@@ -158,12 +158,12 @@ router.get(
   }
 );
 
-// Create new user (admin only)
+// Create new user (zone manager only)
 router.post(
   "/users",
   [
     require("../middleware/auth").authenticateToken,
-    require("../middleware/auth").requireRole(["ADMIN"]),
+    require("../middleware/auth").requireRole(["ZONE_MANAGER"]),
     body("username")
       .isLength({ min: 3 })
       .withMessage("Username must be at least 3 characters"),
@@ -171,8 +171,8 @@ router.post(
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters"),
     body("role")
-      .isIn(["ADMIN", "DEALER"])
-      .withMessage("Role must be ADMIN or DEALER"),
+      .isIn(["ZONE_MANAGER", "FIELD_OFFICER"])
+      .withMessage("Role must be ZONE_MANAGER or FIELD_OFFICER"),
   ],
   async (req, res) => {
     try {
@@ -224,11 +224,11 @@ router.post(
   }
 );
 
-// Delete user (admin only)
+// Delete user (zone manager only)
 router.delete(
   "/users/:id",
   require("../middleware/auth").authenticateToken,
-  require("../middleware/auth").requireRole(["ADMIN"]),
+  require("../middleware/auth").requireRole(["ZONE_MANAGER"]),
   async (req, res) => {
     try {
       const { id } = req.params;

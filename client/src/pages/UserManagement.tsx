@@ -9,7 +9,7 @@ import { authAPI } from "../lib/api";
 interface User {
   id: string;
   username: string;
-  role: "ADMIN" | "DEALER";
+  role: "ZONE_MANAGER" | "FIELD_OFFICER";
   createdAt: string;
 }
 
@@ -22,15 +22,15 @@ export default function UserManagement() {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    role: "DEALER" as "ADMIN" | "DEALER",
+    role: "FIELD_OFFICER" as "ZONE_MANAGER" | "FIELD_OFFICER",
   });
 
   useEffect(() => {
     // Wait for auth to finish loading before checking permissions
     if (authLoading) return;
 
-    if (user?.role !== "ADMIN") {
-      toast.error("Access denied: Admin privileges required");
+    if (user?.role !== "ZONE_MANAGER") {
+      toast.error("Access denied: Zone Manager privileges required");
       return;
     }
     fetchUsers();
@@ -67,7 +67,7 @@ export default function UserManagement() {
       setIsLoading(true);
       await authAPI.createUser(formData);
       toast.success("User created successfully!");
-      setFormData({ username: "", password: "", role: "DEALER" });
+      setFormData({ username: "", password: "", role: "FIELD_OFFICER" });
       setShowAddForm(false);
       fetchUsers();
     } catch (error: any) {
@@ -107,8 +107,8 @@ export default function UserManagement() {
     );
   }
 
-  // Show access denied only after auth has loaded and user is not admin
-  if (user?.role !== "ADMIN") {
+  // Show access denied only after auth has loaded and user is not zone manager
+  if (user?.role !== "ZONE_MANAGER") {
     return (
       <Layout>
         <div className="text-center py-12">
@@ -117,7 +117,7 @@ export default function UserManagement() {
             Access Denied
           </h1>
           <p className="text-gray-600">
-            You need admin privileges to access user management.
+            You need zone manager privileges to access user management.
           </p>
         </div>
       </Layout>
@@ -209,12 +209,14 @@ export default function UserManagement() {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        role: e.target.value as "ADMIN" | "DEALER",
+                        role: e.target.value as
+                          | "ZONE_MANAGER"
+                          | "FIELD_OFFICER",
                       })
                     }
                   >
-                    <option value="DEALER">Dealer</option>
-                    <option value="ADMIN">Admin</option>
+                    <option value="FIELD_OFFICER">Field Officer</option>
+                    <option value="ZONE_MANAGER">Zone Manager</option>
                   </select>
                 </div>
               </div>
@@ -274,12 +276,14 @@ export default function UserManagement() {
                       <td className="table-cell text-center">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            userData.role === "ADMIN"
+                            userData.role === "ZONE_MANAGER"
                               ? "bg-purple-100 text-purple-800"
                               : "bg-blue-100 text-blue-800"
                           }`}
                         >
-                          {userData.role}
+                          {userData.role === "ZONE_MANAGER"
+                            ? "Zone Manager"
+                            : "Field Officer"}
                         </span>
                       </td>
                       <td className="table-cell text-center">
