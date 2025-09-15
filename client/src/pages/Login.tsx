@@ -152,15 +152,24 @@ export default function Login() {
                 Account Information
               </h3>
               <div className="text-xs text-blue-700 space-y-1">
-                <p><strong>Zone Managers:</strong> Use your full name as username</p>
-                <p><strong>Field Officers:</strong> Use your full name as username</p>
-                <p><strong>Password format:</strong> firstname123</p>
+                <p>
+                  <strong>Zone Managers:</strong> Use your full name as username
+                </p>
+                <p>
+                  <strong>Field Officers:</strong> Use your full name as
+                  username
+                </p>
+                <p>
+                  <strong>Password format:</strong> firstname123
+                </p>
                 <div className="mt-3 pt-2 border-t border-blue-200">
                   <p className="text-blue-600">
                     <strong>Examples:</strong>
                   </p>
                   <p>Username: "John Smith" → Password: "john123"</p>
-                  <p>Username: "G.A.R.S. Ranathunga" → Password: "ranathunga123"</p>
+                  <p>
+                    Username: "G.A.R.S. Ranathunga" → Password: "ranathunga123"
+                  </p>
                 </div>
               </div>
             </div>
