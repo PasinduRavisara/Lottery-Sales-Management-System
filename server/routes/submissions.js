@@ -93,7 +93,37 @@ router.post(
   "/",
   [
     authenticateToken,
-    body("district").notEmpty().withMessage("District is required"),
+    body("district")
+      .notEmpty()
+      .withMessage("District is required")
+      .isIn([
+        "Ampara",
+        "Anuradhapura",
+        "Badulla",
+        "Batticaloa",
+        "Colombo",
+        "Galle",
+        "Gampaha",
+        "Hambantota",
+        "Jaffna",
+        "Kalutara",
+        "Kandy",
+        "Kegalle",
+        "Kilinochchi",
+        "Kurunegala",
+        "Mannar",
+        "Matale",
+        "Matara",
+        "Moneragala",
+        "Mullaitivu",
+        "Nuwara Eliya",
+        "Polonnaruwa",
+        "Puttalam",
+        "Ratnapura",
+        "Trincomalee",
+        "Vavuniya",
+      ])
+      .withMessage("Please select a valid Sri Lankan district"),
     body("city").notEmpty().withMessage("City is required"),
     body("dealerName").notEmpty().withMessage("Dealer name is required"),
     body("dealerNumber")

@@ -8,6 +8,7 @@ import {
   DAYS_OF_WEEK,
   SALES_METHODS,
   VALIDATION_RULES,
+  SRI_LANKA_DISTRICTS,
 } from "../lib/constants";
 import Layout from "../components/Layout";
 
@@ -240,15 +241,21 @@ const SalesForm = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   District *
                 </label>
-                <input
-                  type="text"
+                <select
                   className="input-field"
                   value={formData.district}
                   onChange={(e) =>
                     handleInputChange("district", e.target.value)
                   }
                   required
-                />
+                >
+                  <option value="">Select district</option>
+                  {SRI_LANKA_DISTRICTS.map((district) => (
+                    <option key={district} value={district}>
+                      {district}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
