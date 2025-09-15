@@ -3,11 +3,12 @@ import { motion } from "framer-motion";
 import { Save, Trash2, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { submissionsAPI } from "../lib/api";
-import { LOTTERY_BRANDS, DAYS_OF_WEEK } from "../lib/constants";
+import { LOTTERY_BRANDS, DAYS_OF_WEEK, SALES_METHODS } from "../lib/constants";
 import Layout from "../components/Layout";
 
 const SalesForm = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [customSalesMethod, setCustomSalesMethod] = useState("");
   const [formData, setFormData] = useState({
     district: "",
     city: "",
@@ -46,6 +47,18 @@ const SalesForm = () => {
         index === brandIndex ? { ...sale, [day.toLowerCase()]: value } : sale
       ),
     }));
+  };
+
+  const handleSalesMethodChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, salesMethod: value }));
+    if (value !== "Other") {
+      setCustomSalesMethod("");
+    }
+  };
+
+  const handleCustomSalesMethodChange = (value: string) => {
+    setCustomSalesMethod(value);
+    setFormData((prev) => ({ ...prev, salesMethod: value }));
   };
 
   const calculateTotal = (sales: any) => {
@@ -174,6 +187,7 @@ const SalesForm = () => {
           sunday: 0,
         })),
       });
+      setCustomSalesMethod("");
       toast.success("Form cleared successfully");
     }
   };
@@ -278,19 +292,27 @@ const SalesForm = () => {
                 </label>
                 <select
                   className="input-field"
-                  value={formData.salesMethod}
-                  onChange={(e) =>
-                    handleInputChange("salesMethod", e.target.value)
-                  }
+                  value={SALES_METHODS.includes(formData.salesMethod) ? formData.salesMethod : "Other"}
+                  onChange={(e) => handleSalesMethodChange(e.target.value)}
                   required
                 >
                   <option value="">Select method</option>
-                  <option value="Direct Sales">Direct Sales</option>
-                  <option value="Online Platform">Online Platform</option>
-                  <option value="Mobile App">Mobile App</option>
-                  <option value="Retail Outlet">Retail Outlet</option>
-                  <option value="Field Promotion">Field Promotion</option>
+                  {SALES_METHODS.map((method) => (
+                    <option key={method} value={method}>
+                      {method}
+                    </option>
+                  ))}
                 </select>
+                {(formData.salesMethod === "Other" || !SALES_METHODS.includes(formData.salesMethod)) && (
+                  <input
+                    type="text"
+                    className="input-field mt-2"
+                    placeholder="Please specify..."
+                    value={formData.salesMethod === "Other" ? customSalesMethod : formData.salesMethod}
+                    onChange={(e) => handleCustomSalesMethodChange(e.target.value)}
+                    required
+                  />
+                )}
               </div>
             </div>
             <div className="mt-6">

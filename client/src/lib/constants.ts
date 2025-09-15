@@ -20,11 +20,9 @@ export const DAYS_OF_WEEK = [
 ];
 
 export const SALES_METHODS = [
-  "Direct Sales",
-  "Online Platform",
-  "Mobile App",
-  "Retail Outlet",
-  "Field Promotion",
+  "Counter",
+  "Bicycle",
+  "Other",
 ];
 
 export const USER_ROLES = {
