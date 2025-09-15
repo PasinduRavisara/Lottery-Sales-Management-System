@@ -19,11 +19,7 @@ export const DAYS_OF_WEEK = [
   "Sunday",
 ];
 
-export const SALES_METHODS = [
-  "Counter",
-  "Bicycle",
-  "Other",
-];
+export const SALES_METHODS = ["Counter", "Bicycle", "Other"];
 
 export const USER_ROLES = {
   ADMIN: "ADMIN",
@@ -35,7 +31,7 @@ export const VALIDATION_RULES = {
   MAX_DISTRICT_LENGTH: 100,
   MAX_CITY_LENGTH: 100,
   MAX_DEALER_NAME_LENGTH: 100,
-  MAX_DEALER_NUMBER_LENGTH: 50,
+  MAX_DEALER_NUMBER_LENGTH: 20,
   MAX_ASSISTANT_NAME_LENGTH: 100,
   MAX_SALES_LOCATION_LENGTH: 200,
   MAX_TICKET_QUANTITY: 999999,

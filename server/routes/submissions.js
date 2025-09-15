@@ -96,7 +96,13 @@ router.post(
     body("district").notEmpty().withMessage("District is required"),
     body("city").notEmpty().withMessage("City is required"),
     body("dealerName").notEmpty().withMessage("Dealer name is required"),
-    body("dealerNumber").notEmpty().withMessage("Dealer number is required"),
+    body("dealerNumber")
+      .notEmpty()
+      .withMessage("Dealer number is required")
+      .isNumeric()
+      .withMessage("Dealer number must contain only numbers")
+      .isLength({ max: 20 })
+      .withMessage("Dealer number must be at most 20 digits"),
     body("assistantName").notEmpty().withMessage("Assistant name is required"),
     body("salesMethod").notEmpty().withMessage("Sales method is required"),
     body("salesLocation").notEmpty().withMessage("Sales location is required"),

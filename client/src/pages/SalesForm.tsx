@@ -3,7 +3,12 @@ import { motion } from "framer-motion";
 import { Save, Trash2, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { submissionsAPI } from "../lib/api";
-import { LOTTERY_BRANDS, DAYS_OF_WEEK, SALES_METHODS } from "../lib/constants";
+import {
+  LOTTERY_BRANDS,
+  DAYS_OF_WEEK,
+  SALES_METHODS,
+  VALIDATION_RULES,
+} from "../lib/constants";
 import Layout from "../components/Layout";
 
 const SalesForm = () => {
@@ -33,6 +38,19 @@ const SalesForm = () => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
+    }));
+  };
+
+  const handleNumericInputChange = (field: string, value: string) => {
+    // Only allow numeric values and respect max length for dealer number
+    const numericValue = value.replace(/[^0-9]/g, "");
+    const maxLength =
+      field === "dealerNumber" ? VALIDATION_RULES.MAX_DEALER_NUMBER_LENGTH : 50;
+    const truncatedValue = numericValue.slice(0, maxLength);
+
+    setFormData((prev) => ({
+      ...prev,
+      [field]: truncatedValue,
     }));
   };
 
@@ -267,8 +285,38 @@ const SalesForm = () => {
                   className="input-field"
                   value={formData.dealerNumber}
                   onChange={(e) =>
-                    handleInputChange("dealerNumber", e.target.value)
+                    handleNumericInputChange("dealerNumber", e.target.value)
                   }
+                  onKeyPress={(e) => {
+                    // Allow: numbers (0-9)
+                    if (!/[0-9]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    // Allow: backspace, delete, tab, escape, enter, home, end, arrow keys
+                    if (
+                      [8, 9, 27, 13, 46, 35, 36, 37, 38, 39, 40].indexOf(
+                        e.keyCode
+                      ) !== -1 ||
+                      // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                      (e.keyCode === 65 && e.ctrlKey === true) ||
+                      (e.keyCode === 67 && e.ctrlKey === true) ||
+                      (e.keyCode === 86 && e.ctrlKey === true) ||
+                      (e.keyCode === 88 && e.ctrlKey === true)
+                    ) {
+                      return;
+                    }
+                    // Ensure that it is a number and stop the keypress
+                    if (
+                      (e.shiftKey || e.keyCode < 48 || e.keyCode > 57) &&
+                      (e.keyCode < 96 || e.keyCode > 105)
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  maxLength={VALIDATION_RULES.MAX_DEALER_NUMBER_LENGTH}
+                  placeholder="e.g., 1223242352"
                   required
                 />
               </div>
@@ -292,7 +340,11 @@ const SalesForm = () => {
                 </label>
                 <select
                   className="input-field"
-                  value={SALES_METHODS.includes(formData.salesMethod) ? formData.salesMethod : "Other"}
+                  value={
+                    SALES_METHODS.includes(formData.salesMethod)
+                      ? formData.salesMethod
+                      : "Other"
+                  }
                   onChange={(e) => handleSalesMethodChange(e.target.value)}
                   required
                 >
@@ -303,13 +355,20 @@ const SalesForm = () => {
                     </option>
                   ))}
                 </select>
-                {(formData.salesMethod === "Other" || !SALES_METHODS.includes(formData.salesMethod)) && (
+                {(formData.salesMethod === "Other" ||
+                  !SALES_METHODS.includes(formData.salesMethod)) && (
                   <input
                     type="text"
                     className="input-field mt-2"
                     placeholder="Please specify..."
-                    value={formData.salesMethod === "Other" ? customSalesMethod : formData.salesMethod}
-                    onChange={(e) => handleCustomSalesMethodChange(e.target.value)}
+                    value={
+                      formData.salesMethod === "Other"
+                        ? customSalesMethod
+                        : formData.salesMethod
+                    }
+                    onChange={(e) =>
+                      handleCustomSalesMethodChange(e.target.value)
+                    }
                     required
                   />
                 )}
