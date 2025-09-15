@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Save, Eye, Trash2 } from "lucide-react";
-import Layout from "../components/Layout";
-import { DAYS_OF_WEEK, LOTTERY_BRANDS } from "../lib/constants";
+import { Save, Trash2, Eye } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { submissionsAPI } from "../lib/api";
-import toast from "react-hot-toast";
+import { LOTTERY_BRANDS, DAYS_OF_WEEK } from "../lib/constants";
+import Layout from "../components/Layout";
 
-export default function SalesForm() {
-  const navigate = useNavigate();
+const SalesForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     district: "",
@@ -106,8 +104,28 @@ export default function SalesForm() {
         isDraft: false,
       });
 
-      toast.success("Sales submission created successfully!");
-      navigate("/dashboard");
+      toast.success("Sales submission created successfully! You can submit another one.");
+      
+      // Reset form for next submission
+      setFormData({
+        district: "",
+        city: "",
+        dealerName: "",
+        dealerNumber: "",
+        assistantName: "",
+        salesMethod: "",
+        salesLocation: "",
+        dailySales: LOTTERY_BRANDS.map((brand) => ({
+          brandName: brand,
+          monday: 0,
+          tuesday: 0,
+          wednesday: 0,
+          thursday: 0,
+          friday: 0,
+          saturday: 0,
+          sunday: 0,
+        })),
+      });
     } catch (error) {
       console.error("Submission error:", error);
       toast.error("Failed to submit sales data");
@@ -402,4 +420,6 @@ export default function SalesForm() {
       </div>
     </Layout>
   );
-}
+};
+
+export default SalesForm;
