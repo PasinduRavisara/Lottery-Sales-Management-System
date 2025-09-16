@@ -56,7 +56,12 @@ export default function Login() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="mx-auto h-20 w-20 flex items-center justify-center">
+            <img
+              src="/logo.png"
+              alt="Company Logo"
+              className="h-16 w-16 object-contain mb-4"
+            />
             <LogIn className="h-6 w-6 text-white" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
