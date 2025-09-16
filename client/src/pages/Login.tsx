@@ -62,7 +62,6 @@ export default function Login() {
               alt="Company Logo"
               className="h-16 w-16 object-contain mb-4"
             />
-            <LogIn className="h-6 w-6 text-white" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
             Sign in to your account
