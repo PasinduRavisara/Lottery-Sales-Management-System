@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, LogIn, User, Lock } from "lucide-react";
+import { Eye, EyeOff, User, Lock } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import toast from "react-hot-toast";
 
@@ -56,11 +56,11 @@ export default function Login() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <div className="mx-auto h-20 w-20 flex items-center justify-center">
+          <div className="mx-auto flex items-center justify-center mb-4">
             <img
               src="/logo.png"
               alt="Company Logo"
-              className="h-16 w-16 object-contain mb-4"
+              className="h-16 w-16 object-contain"
             />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
