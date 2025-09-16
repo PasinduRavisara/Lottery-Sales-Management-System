@@ -7,6 +7,7 @@ export const LOTTERY_BRANDS = [
   "Kapruka",
   "Jayoda",
   "Sasiri",
+  "Jaya Sampatha",
 ];
 
 export const DAYS_OF_WEEK = [
