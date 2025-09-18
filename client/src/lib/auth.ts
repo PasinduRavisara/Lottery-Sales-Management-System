@@ -4,7 +4,7 @@ import { authAPI } from "./api";
 interface User {
   id: string;
   username: string;
-  role: "ZONE_MANAGER" | "FIELD_OFFICER";
+  role: "TERRITORY_MANAGER" | "SALES_PROMOTION_ASSISTANT";
 }
 
 interface AuthState {

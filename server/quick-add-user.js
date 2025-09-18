@@ -3,13 +3,13 @@ const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
-async function addUser(username, password, role = "FIELD_OFFICER") {
+async function addUser(username, password, role = "SALES_PROMOTION_ASSISTANT") {
   try {
     // Validate inputs
     if (!username || !password) {
       console.log("Usage: node quick-add-user.js <username> <password> [role]");
       console.log(
-        "Example: node quick-add-user.js john123 password123 FIELD_OFFICER"
+        "Example: node quick-add-user.js john123 password123 SALES_PROMOTION_ASSISTANT"
       );
       return;
     }
@@ -19,9 +19,11 @@ async function addUser(username, password, role = "FIELD_OFFICER") {
       return;
     }
 
-    const validRoles = ["ZONE_MANAGER", "FIELD_OFFICER"];
+    const validRoles = ["TERRITORY_MANAGER", "SALES_PROMOTION_ASSISTANT"];
     if (!validRoles.includes(role.toUpperCase())) {
-      console.log("Error: Role must be ZONE_MANAGER or FIELD_OFFICER");
+      console.log(
+        "Error: Role must be TERRITORY_MANAGER or SALES_PROMOTION_ASSISTANT"
+      );
       return;
     }
 

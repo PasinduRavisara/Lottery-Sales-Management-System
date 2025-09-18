@@ -9,7 +9,7 @@ import { authAPI } from "../lib/api";
 interface User {
   id: string;
   username: string;
-  role: "ZONE_MANAGER" | "FIELD_OFFICER";
+  role: "TERRITORY_MANAGER" | "SALES_PROMOTION_ASSISTANT";
   createdAt: string;
 }
 
@@ -22,15 +22,17 @@ export default function UserManagement() {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    role: "FIELD_OFFICER" as "ZONE_MANAGER" | "FIELD_OFFICER",
+    role: "SALES_PROMOTION_ASSISTANT" as
+      | "TERRITORY_MANAGER"
+      | "SALES_PROMOTION_ASSISTANT",
   });
 
   useEffect(() => {
     // Wait for auth to finish loading before checking permissions
     if (authLoading) return;
 
-    if (user?.role !== "ZONE_MANAGER") {
-      toast.error("Access denied: Zone Manager privileges required");
+    if (user?.role !== "TERRITORY_MANAGER") {
+      toast.error("Access denied: Territory Manager privileges required");
       return;
     }
     fetchUsers();
@@ -67,7 +69,11 @@ export default function UserManagement() {
       setIsLoading(true);
       await authAPI.createUser(formData);
       toast.success("User created successfully!");
-      setFormData({ username: "", password: "", role: "FIELD_OFFICER" });
+      setFormData({
+        username: "",
+        password: "",
+        role: "SALES_PROMOTION_ASSISTANT",
+      });
       setShowAddForm(false);
       fetchUsers();
     } catch (error: any) {
@@ -107,8 +113,8 @@ export default function UserManagement() {
     );
   }
 
-  // Show access denied only after auth has loaded and user is not zone manager
-  if (user?.role !== "ZONE_MANAGER") {
+  // Show access denied only after auth has loaded and user is not territory manager
+  if (user?.role !== "TERRITORY_MANAGER") {
     return (
       <Layout>
         <div className="text-center py-12">
@@ -117,7 +123,7 @@ export default function UserManagement() {
             Access Denied
           </h1>
           <p className="text-gray-600">
-            You need zone manager privileges to access user management.
+            You need territory manager privileges to access user management.
           </p>
         </div>
       </Layout>
@@ -210,13 +216,15 @@ export default function UserManagement() {
                       setFormData({
                         ...formData,
                         role: e.target.value as
-                          | "ZONE_MANAGER"
-                          | "FIELD_OFFICER",
+                          | "TERRITORY_MANAGER"
+                          | "SALES_PROMOTION_ASSISTANT",
                       })
                     }
                   >
-                    <option value="FIELD_OFFICER">Field Officer</option>
-                    <option value="ZONE_MANAGER">Zone Manager</option>
+                    <option value="SALES_PROMOTION_ASSISTANT">
+                      Sales Promotion Assistant
+                    </option>
+                    <option value="TERRITORY_MANAGER">Territory Manager</option>
                   </select>
                 </div>
               </div>
@@ -276,14 +284,14 @@ export default function UserManagement() {
                       <td className="table-cell text-center">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            userData.role === "ZONE_MANAGER"
+                            userData.role === "TERRITORY_MANAGER"
                               ? "bg-purple-100 text-purple-800"
                               : "bg-blue-100 text-blue-800"
                           }`}
                         >
-                          {userData.role === "ZONE_MANAGER"
-                            ? "Zone Manager"
-                            : "Field Officer"}
+                          {userData.role === "TERRITORY_MANAGER"
+                            ? "Territory Manager"
+                            : "Sales Promotion Assistant"}
                         </span>
                       </td>
                       <td className="table-cell text-center">

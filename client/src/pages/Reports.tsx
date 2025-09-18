@@ -88,7 +88,7 @@ export default function Reports() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
             <p className="text-gray-600 mt-1">
-              {user?.role === "ZONE_MANAGER"
+              {user?.role === "TERRITORY_MANAGER"
                 ? "View and analyze all sales submissions"
                 : "View and manage your sales submissions"}
             </p>
@@ -98,7 +98,7 @@ export default function Reports() {
         <div className="card">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
-              {user?.role === "ZONE_MANAGER"
+              {user?.role === "TERRITORY_MANAGER"
                 ? "All Submissions"
                 : "My Submissions"}
             </h2>
@@ -123,7 +123,7 @@ export default function Reports() {
                     <th className="table-cell text-left">Location</th>
                     <th className="table-cell text-center">Status</th>
                     <th className="table-cell text-center">Date</th>
-                    {user?.role === "ZONE_MANAGER" && (
+                    {user?.role === "TERRITORY_MANAGER" && (
                       <th className="table-cell text-center">Submitted By</th>
                     )}
                     <th className="table-cell text-center">Actions</th>
@@ -152,7 +152,7 @@ export default function Reports() {
                       <td className="table-cell text-center">
                         {new Date(submission.createdAt).toLocaleDateString()}
                       </td>
-                      {user?.role === "ZONE_MANAGER" && (
+                      {user?.role === "TERRITORY_MANAGER" && (
                         <td className="table-cell text-center">
                           {submission.user.username}
                         </td>
@@ -166,7 +166,7 @@ export default function Reports() {
                           >
                             <Eye className="h-4 w-4" />
                           </Link>
-                          {user?.role === "FIELD_OFFICER" && (
+                          {user?.role === "SALES_PROMOTION_ASSISTANT" && (
                             <button
                               onClick={() =>
                                 handleDeleteSubmission(
@@ -190,11 +190,11 @@ export default function Reports() {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-600">
-                {user?.role === "ZONE_MANAGER"
+                {user?.role === "TERRITORY_MANAGER"
                   ? "No submissions found"
                   : "You haven't submitted any reports yet"}
               </p>
-              {user?.role === "FIELD_OFFICER" && (
+              {user?.role === "SALES_PROMOTION_ASSISTANT" && (
                 <Link
                   to="/sales-form"
                   className="text-blue-600 hover:text-blue-800 mt-2 inline-block"

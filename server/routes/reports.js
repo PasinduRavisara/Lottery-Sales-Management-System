@@ -29,11 +29,11 @@ router.get("/summary", authenticateToken, async (req, res) => {
       whereClause.city = { contains: city, mode: "insensitive" };
     }
 
-    // If user is field officer, only show their submissions
-    if (req.user.role === "FIELD_OFFICER") {
+    // If user is sales promotion assistant, only show their submissions
+    if (req.user.role === "SALES_PROMOTION_ASSISTANT") {
       whereClause.userId = req.user.id;
     }
-    // Zone managers can see all submissions
+    // Territory managers can see all submissions
 
     const submissions = await prisma.salesSubmission.findMany({
       where: whereClause,
@@ -169,11 +169,11 @@ router.get("/export", authenticateToken, async (req, res) => {
       whereClause.city = { contains: city, mode: "insensitive" };
     }
 
-    // If user is field officer, only show their submissions
-    if (req.user.role === "FIELD_OFFICER") {
+    // If user is sales promotion assistant, only show their submissions
+    if (req.user.role === "SALES_PROMOTION_ASSISTANT") {
       whereClause.userId = req.user.id;
     }
-    // Zone managers can see all submissions
+    // Territory managers can see all submissions
 
     const submissions = await prisma.salesSubmission.findMany({
       where: whereClause,
@@ -249,11 +249,11 @@ router.get("/dashboard", authenticateToken, async (req, res) => {
 
     let whereClause = { isDraft: false };
 
-    // If user is field officer, only show their submissions
-    if (req.user.role === "FIELD_OFFICER") {
+    // If user is sales promotion assistant, only show their submissions
+    if (req.user.role === "SALES_PROMOTION_ASSISTANT") {
       whereClause.userId = req.user.id;
     }
-    // Zone managers can see all submissions
+    // Territory managers can see all submissions
 
     // Total submissions
     const totalSubmissions = await prisma.salesSubmission.count({

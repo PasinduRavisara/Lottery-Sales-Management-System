@@ -95,7 +95,7 @@ router.post("/logout", (req, res) => {
 router.get(
   "/users",
   require("../middleware/auth").authenticateToken,
-  require("../middleware/auth").requireRole(["ZONE_MANAGER"]),
+  require("../middleware/auth").requireRole(["TERRITORY_MANAGER"]),
   async (req, res) => {
     try {
       const users = await prisma.user.findMany({
@@ -121,7 +121,7 @@ router.post(
   "/users",
   [
     require("../middleware/auth").authenticateToken,
-    require("../middleware/auth").requireRole(["ZONE_MANAGER"]),
+    require("../middleware/auth").requireRole(["TERRITORY_MANAGER"]),
     body("username")
       .isLength({ min: 3 })
       .withMessage("Username must be at least 3 characters"),
@@ -129,8 +129,10 @@ router.post(
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters"),
     body("role")
-      .isIn(["ZONE_MANAGER", "FIELD_OFFICER"])
-      .withMessage("Role must be ZONE_MANAGER or FIELD_OFFICER"),
+      .isIn(["TERRITORY_MANAGER", "SALES_PROMOTION_ASSISTANT"])
+      .withMessage(
+        "Role must be TERRITORY_MANAGER or SALES_PROMOTION_ASSISTANT"
+      ),
   ],
   async (req, res) => {
     try {

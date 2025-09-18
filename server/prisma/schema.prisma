@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,61 +8,57 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  username     String   @unique
-  passwordHash String   @map("password_hash")
-  role         UserRole @default(FIELD_OFFICER)
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  // Relations
+  id               String            @id @default(cuid())
+  username         String            @unique
+  passwordHash     String            @map("password_hash")
+  role             users_role        @default(SALES_PROMOTION_ASSISTANT)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
   salesSubmissions SalesSubmission[]
 
   @@map("users")
 }
 
 model SalesSubmission {
-  id             String   @id @default(cuid())
-  userId         String   @map("user_id")
-  district       String
-  city           String
-  dealerName     String   @map("dealer_name")
-  dealerNumber   String   @map("dealer_number")
-  assistantName  String   @map("assistant_name")
-  salesMethod    String   @map("sales_method")
-  salesLocation  String   @map("sales_location")
-  isDraft        Boolean  @default(true) @map("is_draft")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id            String       @id @default(cuid())
+  userId        String       @map("user_id")
+  district      String
+  city          String
+  dealerName    String       @map("dealer_name")
+  dealerNumber  String       @map("dealer_number")
+  assistantName String       @map("assistant_name")
+  salesMethod   String       @map("sales_method")
+  salesLocation String       @map("sales_location")
+  isDraft       Boolean      @default(true) @map("is_draft")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  dailySales    DailySales[]
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Relations
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  dailySales     DailySales[]
-
+  @@index([userId], map: "sales_submissions_user_id_fkey")
   @@map("sales_submissions")
 }
 
 model DailySales {
-  id           String   @id @default(cuid())
-  submissionId String   @map("submission_id")
-  brandName    String   @map("brand_name")
-  monday       Int      @default(0)
-  tuesday      Int      @default(0)
-  wednesday    Int      @default(0)
-  thursday     Int      @default(0)
-  friday       Int      @default(0)
-  saturday     Int      @default(0)
-  sunday       Int      @default(0)
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  // Relations
+  id           String          @id @default(cuid())
+  submissionId String          @map("submission_id")
+  brandName    String          @map("brand_name")
+  monday       Int             @default(0)
+  tuesday      Int             @default(0)
+  wednesday    Int             @default(0)
+  thursday     Int             @default(0)
+  friday       Int             @default(0)
+  saturday     Int             @default(0)
+  sunday       Int             @default(0)
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
   submission   SalesSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 
+  @@index([submissionId], map: "daily_sales_submission_id_fkey")
   @@map("daily_sales")
 }
 
-enum UserRole {
-  ZONE_MANAGER
-  FIELD_OFFICER
+enum users_role {
+  TERRITORY_MANAGER
+  SALES_PROMOTION_ASSISTANT
 }

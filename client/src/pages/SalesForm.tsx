@@ -43,10 +43,10 @@ const SalesForm = () => {
   };
 
   const handleNumericInputChange = (field: string, value: string) => {
-    // Only allow numeric values and respect max length for dealer number
+    // Only allow numeric values and respect exact length for dealer number
     const numericValue = value.replace(/[^0-9]/g, "");
     const maxLength =
-      field === "dealerNumber" ? VALIDATION_RULES.MAX_DEALER_NUMBER_LENGTH : 50;
+      field === "dealerNumber" ? VALIDATION_RULES.DEALER_NUMBER_LENGTH : 50;
     const truncatedValue = numericValue.slice(0, maxLength);
 
     setFormData((prev) => ({
@@ -118,14 +118,31 @@ const SalesForm = () => {
         return false;
       }
     }
+
+    // Validate dealer number is exactly 6 digits
+    if (
+      formData.dealerNumber.length !== VALIDATION_RULES.DEALER_NUMBER_LENGTH
+    ) {
+      return false;
+    }
+
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Check if all required fields are filled
     if (!validateForm()) {
-      toast.error("Please fill in all required fields");
+      if (
+        formData.dealerNumber.length !== VALIDATION_RULES.DEALER_NUMBER_LENGTH
+      ) {
+        toast.error(
+          `Dealer number must be exactly ${VALIDATION_RULES.DEALER_NUMBER_LENGTH} digits`
+        );
+      } else {
+        toast.error("Please fill in all required fields");
+      }
       return;
     }
 
@@ -322,8 +339,8 @@ const SalesForm = () => {
                       e.preventDefault();
                     }
                   }}
-                  maxLength={VALIDATION_RULES.MAX_DEALER_NUMBER_LENGTH}
-                  placeholder="e.g., 1223242352"
+                  maxLength={VALIDATION_RULES.DEALER_NUMBER_LENGTH}
+                  placeholder="123456 (exactly 6 digits)"
                   required
                 />
               </div>

@@ -2,6 +2,7 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require("@prisma/client");
 const { authenticateToken, requireRole } = require("../middleware/auth");
+const { SRI_LANKA_DISTRICTS, VALIDATION_RULES } = require("../lib/constants");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -14,8 +15,8 @@ router.get("/", authenticateToken, async (req, res) => {
 
     let whereClause = {};
 
-    // If user is field officer, only show their submissions
-    if (req.user.role === "FIELD_OFFICER") {
+    // If user is sales promotion assistant, only show their submissions
+    if (req.user.role === "SALES_PROMOTION_ASSISTANT") {
       whereClause.userId = req.user.id;
     }
 
@@ -75,7 +76,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
 
     // Check if user can access this submission
     if (
-      req.user.role === "FIELD_OFFICER" &&
+      req.user.role === "SALES_PROMOTION_ASSISTANT" &&
       submission.userId !== req.user.id
     ) {
       return res.status(403).json({ message: "Access denied" });
@@ -96,33 +97,7 @@ router.post(
     body("district")
       .notEmpty()
       .withMessage("District is required")
-      .isIn([
-        "Ampara",
-        "Anuradhapura",
-        "Badulla",
-        "Batticaloa",
-        "Colombo",
-        "Galle",
-        "Gampaha",
-        "Hambantota",
-        "Jaffna",
-        "Kalutara",
-        "Kandy",
-        "Kegalle",
-        "Kilinochchi",
-        "Kurunegala",
-        "Mannar",
-        "Matale",
-        "Matara",
-        "Moneragala",
-        "Mullaitivu",
-        "Nuwara Eliya",
-        "Polonnaruwa",
-        "Puttalam",
-        "Ratnapura",
-        "Trincomalee",
-        "Vavuniya",
-      ])
+      .isIn(SRI_LANKA_DISTRICTS)
       .withMessage("Please select a valid Sri Lankan district"),
     body("city").notEmpty().withMessage("City is required"),
     body("dealerName").notEmpty().withMessage("Dealer name is required"),
@@ -131,8 +106,13 @@ router.post(
       .withMessage("Dealer number is required")
       .isNumeric()
       .withMessage("Dealer number must contain only numbers")
-      .isLength({ max: 20 })
-      .withMessage("Dealer number must be at most 20 digits"),
+      .isLength({
+        min: VALIDATION_RULES.DEALER_NUMBER_LENGTH,
+        max: VALIDATION_RULES.DEALER_NUMBER_LENGTH,
+      })
+      .withMessage(
+        `Dealer number must be exactly ${VALIDATION_RULES.DEALER_NUMBER_LENGTH} digits`
+      ),
     body("assistantName").notEmpty().withMessage("Assistant name is required"),
     body("salesMethod").notEmpty().withMessage("Sales method is required"),
     body("salesLocation").notEmpty().withMessage("Sales location is required"),
@@ -174,7 +154,7 @@ router.post(
 
         // Check if user can update this submission
         if (
-          req.user.role === "FIELD_OFFICER" &&
+          req.user.role === "SALES_PROMOTION_ASSISTANT" &&
           existingSubmission.userId !== req.user.id
         ) {
           return res.status(403).json({ message: "Access denied" });
@@ -297,7 +277,7 @@ router.delete("/:id", authenticateToken, async (req, res) => {
 
     // Check if user can delete this submission
     if (
-      req.user.role === "FIELD_OFFICER" &&
+      req.user.role === "SALES_PROMOTION_ASSISTANT" &&
       submission.userId !== req.user.id
     ) {
       return res.status(403).json({ message: "Access denied" });

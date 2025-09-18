@@ -84,10 +84,12 @@ async function createUser() {
     }
 
     const role = await askQuestion(
-      "Role (ZONE_MANAGER/FIELD_OFFICER) [FIELD_OFFICER]: "
+      "Role (TERRITORY_MANAGER/SALES_PROMOTION_ASSISTANT) [SALES_PROMOTION_ASSISTANT]: "
     );
     const userRole =
-      role.toUpperCase() === "ZONE_MANAGER" ? "ZONE_MANAGER" : "FIELD_OFFICER";
+      role.toUpperCase() === "TERRITORY_MANAGER"
+        ? "TERRITORY_MANAGER"
+        : "SALES_PROMOTION_ASSISTANT";
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
