@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Eye, Download, Filter, Trash2 } from "lucide-react";
+import { Eye, Download, Filter, Trash2, FileSpreadsheet } from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import { submissionsAPI } from "../lib/api";
@@ -23,9 +23,28 @@ export default function Reports() {
   const { user } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchSubmissions();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowExportDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const fetchSubmissions = async () => {
@@ -69,6 +88,47 @@ export default function Reports() {
     }
   };
 
+  const handleExport = async (format: "csv" | "excel") => {
+    try {
+      setIsExporting(true);
+      setShowExportDropdown(false);
+
+      const response = await fetch(`/api/reports/export?format=${format}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Export failed");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+
+      const filename =
+        format === "excel"
+          ? "lottery-sales-report.xlsx"
+          : "lottery-sales-report.csv";
+
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success(`${format.toUpperCase()} file downloaded successfully!`);
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export data");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <Layout>
@@ -108,10 +168,41 @@ export default function Reports() {
                 <Filter className="h-4 w-4 mr-2" />
                 Filter
               </button>
-              <button className="btn-secondary">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </button>
+
+              {/* Export Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setShowExportDropdown(!showExportDropdown)}
+                  disabled={isExporting}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {isExporting ? "Exporting..." : "Export"}
+                </button>
+
+                {showExportDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                    <div className="py-1">
+                      <button
+                        onClick={() => handleExport("csv")}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        disabled={isExporting}
+                      >
+                        <Download className="h-4 w-4 mr-3" />
+                        Export as CSV
+                      </button>
+                      <button
+                        onClick={() => handleExport("excel")}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        disabled={isExporting}
+                      >
+                        <FileSpreadsheet className="h-4 w-4 mr-3" />
+                        Export as Excel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

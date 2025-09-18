@@ -2,6 +2,7 @@ const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 const { authenticateToken, requireRole } = require("../middleware/auth");
 const { Parser } = require("json2csv");
+const XLSX = require("xlsx");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -163,13 +164,12 @@ router.get("/export", authenticateToken, async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    // Flatten data for CSV export
+    // Flatten data for CSV/Excel export with proper column ordering
     const exportData = [];
     submissions.forEach((submission) => {
       submission.dailySales.forEach((dailySale) => {
         exportData.push({
-          "Submission ID": submission.id,
-          Date: submission.createdAt.toISOString().split("T")[0],
+          "Submitted By": submission.user.username,
           District: submission.district,
           City: submission.city,
           "Dealer Name": submission.dealerName,
@@ -187,7 +187,7 @@ router.get("/export", authenticateToken, async (req, res) => {
           Sunday: dailySale.sunday,
           "Weekly Total": dailySale.weeklyTotal,
           "Submission Total": submission.totalTickets,
-          "Submitted By": submission.user.username,
+          Date: submission.createdAt.toISOString().split("T")[0],
         });
       });
     });
@@ -202,6 +202,130 @@ router.get("/export", authenticateToken, async (req, res) => {
         "attachment; filename=lottery-sales-report.csv"
       );
       res.send(csv);
+    } else if (format === "excel") {
+      // Create Excel workbook with multiple sheets
+      const workbook = XLSX.utils.book_new();
+
+      // Sheet 1: Detailed Sales Data
+      const detailsSheet = XLSX.utils.json_to_sheet(exportData);
+
+      // Auto-size columns
+      const detailsRange = XLSX.utils.decode_range(detailsSheet["!ref"]);
+      const colWidths = [];
+      for (let C = detailsRange.s.c; C <= detailsRange.e.c; ++C) {
+        let maxWidth = 10;
+        for (let R = detailsRange.s.r; R <= detailsRange.e.r; ++R) {
+          const cellAddress = XLSX.utils.encode_cell({ c: C, r: R });
+          const cell = detailsSheet[cellAddress];
+          if (cell && cell.v) {
+            const cellValueLength = cell.v.toString().length;
+            maxWidth = Math.max(maxWidth, cellValueLength);
+          }
+        }
+        colWidths.push({ wch: Math.min(maxWidth + 2, 50) });
+      }
+      detailsSheet["!cols"] = colWidths;
+
+      XLSX.utils.book_append_sheet(workbook, detailsSheet, "Sales Details");
+
+      // Sheet 2: Summary by Brand
+      const brandSummary = {};
+      exportData.forEach((row) => {
+        if (!brandSummary[row["Brand Name"]]) {
+          brandSummary[row["Brand Name"]] = {
+            "Brand Name": row["Brand Name"],
+            "Total Monday": 0,
+            "Total Tuesday": 0,
+            "Total Wednesday": 0,
+            "Total Thursday": 0,
+            "Total Friday": 0,
+            "Total Saturday": 0,
+            "Total Sunday": 0,
+            "Brand Total": 0,
+          };
+        }
+        brandSummary[row["Brand Name"]]["Total Monday"] += row.Monday;
+        brandSummary[row["Brand Name"]]["Total Tuesday"] += row.Tuesday;
+        brandSummary[row["Brand Name"]]["Total Wednesday"] += row.Wednesday;
+        brandSummary[row["Brand Name"]]["Total Thursday"] += row.Thursday;
+        brandSummary[row["Brand Name"]]["Total Friday"] += row.Friday;
+        brandSummary[row["Brand Name"]]["Total Saturday"] += row.Saturday;
+        brandSummary[row["Brand Name"]]["Total Sunday"] += row.Sunday;
+        brandSummary[row["Brand Name"]]["Brand Total"] += row["Weekly Total"];
+      });
+
+      const brandSummaryData = Object.values(brandSummary);
+      const brandSheet = XLSX.utils.json_to_sheet(brandSummaryData);
+      brandSheet["!cols"] = [
+        { wch: 20 }, // Brand Name
+        { wch: 12 }, // Monday
+        { wch: 12 }, // Tuesday
+        { wch: 12 }, // Wednesday
+        { wch: 12 }, // Thursday
+        { wch: 12 }, // Friday
+        { wch: 12 }, // Saturday
+        { wch: 12 }, // Sunday
+        { wch: 15 }, // Brand Total
+      ];
+      XLSX.utils.book_append_sheet(workbook, brandSheet, "Brand Summary");
+
+      // Sheet 3: Summary by District
+      const districtSummary = {};
+      exportData.forEach((row) => {
+        if (!districtSummary[row.District]) {
+          districtSummary[row.District] = {
+            District: row.District,
+            "Total Submissions": 0,
+            "Total Tickets": 0,
+            "Unique Dealers": new Set(),
+          };
+        }
+        districtSummary[row.District]["Total Tickets"] += row["Weekly Total"];
+        districtSummary[row.District]["Unique Dealers"].add(row["Dealer Name"]);
+      });
+
+      // Count unique submissions per district
+      const submissionsByDistrict = {};
+      submissions.forEach((submission) => {
+        if (!submissionsByDistrict[submission.district]) {
+          submissionsByDistrict[submission.district] = 0;
+        }
+        submissionsByDistrict[submission.district]++;
+      });
+
+      const districtSummaryData = Object.keys(districtSummary).map(
+        (district) => ({
+          District: district,
+          "Total Submissions": submissionsByDistrict[district] || 0,
+          "Total Tickets": districtSummary[district]["Total Tickets"],
+          "Unique Dealers": districtSummary[district]["Unique Dealers"].size,
+        })
+      );
+
+      const districtSheet = XLSX.utils.json_to_sheet(districtSummaryData);
+      districtSheet["!cols"] = [
+        { wch: 20 }, // District
+        { wch: 18 }, // Total Submissions
+        { wch: 15 }, // Total Tickets
+        { wch: 15 }, // Unique Dealers
+      ];
+      XLSX.utils.book_append_sheet(workbook, districtSheet, "District Summary");
+
+      // Generate Excel file
+      const excelBuffer = XLSX.write(workbook, {
+        type: "buffer",
+        bookType: "xlsx",
+      });
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=lottery-sales-report.xlsx"
+      );
+      res.send(excelBuffer);
     } else {
       res.json(exportData);
     }
