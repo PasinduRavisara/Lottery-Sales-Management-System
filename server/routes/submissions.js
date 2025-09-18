@@ -214,8 +214,8 @@ router.post(
           };
         });
 
-        // Calculate grand total for the entire submission
-        const grandTotal = dailySalesData.reduce(
+        // Calculate total for the entire submission
+        const submissionTotal = dailySalesData.reduce(
           (total, sale) => total + sale.weeklyTotal,
           0
         );
@@ -236,8 +236,7 @@ router.post(
             assistantName,
             salesMethod,
             salesLocation,
-            totalTickets: grandTotal,
-            grandTotal: grandTotal,
+            totalTickets: submissionTotal,
             isDraft,
           },
         });
@@ -269,7 +268,7 @@ router.post(
           monday + tuesday + wednesday + thursday + friday + saturday + sunday
         );
       });
-      const submissionGrandTotal = dailySalesTemp.reduce(
+      const submissionTotal = dailySalesTemp.reduce(
         (total, weeklyTotal) => total + weeklyTotal,
         0
       );
@@ -285,8 +284,7 @@ router.post(
           assistantName,
           salesMethod,
           salesLocation,
-          totalTickets: submissionGrandTotal,
-          grandTotal: submissionGrandTotal,
+          totalTickets: submissionTotal,
           isDraft,
         },
       });
