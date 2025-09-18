@@ -29,7 +29,7 @@ router.get("/", authenticateToken, async (req, res) => {
       where: whereClause,
       include: {
         user: {
-          select: { username: true },
+          select: { id: true, username: true },
         },
         dailySales: true,
       },
@@ -276,6 +276,8 @@ router.delete("/:id", authenticateToken, async (req, res) => {
     }
 
     // Check if user can delete this submission
+    // Territory Managers can delete any submission
+    // Sales Promotion Assistants can only delete their own submissions
     if (
       req.user.role === "SALES_PROMOTION_ASSISTANT" &&
       submission.userId !== req.user.id

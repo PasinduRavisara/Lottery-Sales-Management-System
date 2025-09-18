@@ -14,6 +14,7 @@ interface Submission {
   isDraft: boolean;
   createdAt: string;
   user: {
+    id: string;
     username: string;
   };
 }
@@ -166,7 +167,10 @@ export default function Reports() {
                           >
                             <Eye className="h-4 w-4" />
                           </Link>
-                          {user?.role === "SALES_PROMOTION_ASSISTANT" && (
+                          {/* Territory Managers can delete any submission, Sales Promotion Assistants can only delete their own */}
+                          {(user?.role === "TERRITORY_MANAGER" ||
+                            (user?.role === "SALES_PROMOTION_ASSISTANT" &&
+                              submission.user.id === user.id)) && (
                             <button
                               onClick={() =>
                                 handleDeleteSubmission(

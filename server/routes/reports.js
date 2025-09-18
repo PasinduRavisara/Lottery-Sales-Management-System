@@ -38,7 +38,7 @@ router.get("/summary", authenticateToken, async (req, res) => {
     const submissions = await prisma.salesSubmission.findMany({
       where: whereClause,
       include: {
-        user: { select: { username: true } },
+        user: { select: { id: true, username: true } },
         dailySales: true,
       },
       orderBy: { createdAt: "desc" },
@@ -178,7 +178,7 @@ router.get("/export", authenticateToken, async (req, res) => {
     const submissions = await prisma.salesSubmission.findMany({
       where: whereClause,
       include: {
-        user: { select: { username: true } },
+        user: { select: { id: true, username: true } },
         dailySales: true,
       },
       orderBy: { createdAt: "desc" },
@@ -288,7 +288,7 @@ router.get("/dashboard", authenticateToken, async (req, res) => {
     const recentSubmissions = await prisma.salesSubmission.findMany({
       where: whereClause,
       include: {
-        user: { select: { username: true } },
+        user: { select: { id: true, username: true } },
         dailySales: true,
       },
       orderBy: { createdAt: "desc" },
