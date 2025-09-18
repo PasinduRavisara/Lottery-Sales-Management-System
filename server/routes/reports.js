@@ -164,32 +164,82 @@ router.get("/export", authenticateToken, async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    // Flatten data for CSV/Excel export with proper column ordering
+    // Restructure data for matrix format with brands as sub-columns under each day
     const exportData = [];
+
+    // Define lottery brands (matching frontend constants)
+    const LOTTERY_BRANDS = [
+      "Supiri Dhana Sampatha",
+      "Ada Kotipathi",
+      "Lagna Wasanawe",
+      "Super Ball",
+      "Shanida",
+      "Kapruka",
+      "Jayoda",
+      "Sasiri",
+      "Jaya Sampatha",
+    ];
+
+    const DAYS_OF_WEEK = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
+
     submissions.forEach((submission) => {
+      // Create a single row per submission with all brands as sub-columns
+      const rowData = {
+        "Submitted By": submission.user.username,
+        District: submission.district,
+        City: submission.city,
+        "Dealer Name": submission.dealerName,
+        "Dealer Number": submission.dealerNumber,
+        "Assistant Name": submission.assistantName,
+        "Sales Method": submission.salesMethod,
+        "Sales Location": submission.salesLocation,
+      };
+
+      // Create a map of daily sales by brand name for easy lookup
+      const salesByBrand = {};
       submission.dailySales.forEach((dailySale) => {
-        exportData.push({
-          "Submitted By": submission.user.username,
-          District: submission.district,
-          City: submission.city,
-          "Dealer Name": submission.dealerName,
-          "Dealer Number": submission.dealerNumber,
-          "Assistant Name": submission.assistantName,
-          "Sales Method": submission.salesMethod,
-          "Sales Location": submission.salesLocation,
-          "Brand Name": dailySale.brandName,
-          Monday: dailySale.monday,
-          Tuesday: dailySale.tuesday,
-          Wednesday: dailySale.wednesday,
-          Thursday: dailySale.thursday,
-          Friday: dailySale.friday,
-          Saturday: dailySale.saturday,
-          Sunday: dailySale.sunday,
-          "Weekly Total": dailySale.weeklyTotal,
-          "Submission Total": submission.totalTickets,
-          Date: submission.createdAt.toISOString().split("T")[0],
-        });
+        salesByBrand[dailySale.brandName] = dailySale;
       });
+
+      // Add columns for each day with brand names only (for multi-level headers)
+      DAYS_OF_WEEK.forEach((day) => {
+        LOTTERY_BRANDS.forEach((brand) => {
+          // Use just brand name as column header - day grouping will be handled by merged cells
+          const columnName = `${day}_${brand}`;
+          const dailySale = salesByBrand[brand];
+          if (dailySale) {
+            rowData[columnName] = dailySale[day.toLowerCase()];
+          } else {
+            rowData[columnName] = 0;
+          }
+        });
+
+        // Add day total column
+        const dayTotal = LOTTERY_BRANDS.reduce((total, brand) => {
+          const dailySale = salesByBrand[brand];
+          return total + (dailySale ? dailySale[day.toLowerCase()] : 0);
+        }, 0);
+        rowData[`${day}_Total`] = dayTotal;
+      });
+
+      // Add overall total
+      const overallTotal = submission.dailySales.reduce((total, dailySale) => {
+        return total + dailySale.weeklyTotal;
+      }, 0);
+      rowData["Weekly Total"] = overallTotal;
+
+      // Add date as last column
+      rowData.Date = submission.createdAt.toISOString().split("T")[0];
+
+      exportData.push(rowData);
     });
 
     if (format === "csv") {
@@ -206,56 +256,284 @@ router.get("/export", authenticateToken, async (req, res) => {
       // Create Excel workbook with multiple sheets
       const workbook = XLSX.utils.book_new();
 
-      // Sheet 1: Detailed Sales Data
-      const detailsSheet = XLSX.utils.json_to_sheet(exportData);
+      // Create worksheet manually to support multi-level headers
+      const worksheet = {};
 
-      // Auto-size columns
-      const detailsRange = XLSX.utils.decode_range(detailsSheet["!ref"]);
+      // Define the structure
+      const basicInfoCols = [
+        "Submitted By",
+        "District",
+        "City",
+        "Dealer Name",
+        "Dealer Number",
+        "Assistant Name",
+        "Sales Method",
+        "Sales Location",
+      ];
+      const totalCols =
+        8 + DAYS_OF_WEEK.length * (LOTTERY_BRANDS.length + 1) + 2; // +1 for day total, +2 for weekly total and date
+
+      // Create multi-level headers
+      let currentCol = 0;
+
+      // Day headers with merged cells
+      const merges = [];
+
+      // Header styling (center aligned)
+      const headerStyle = {
+        alignment: {
+          horizontal: "center",
+          vertical: "center",
+        },
+        font: {
+          bold: true,
+        },
+      };
+
+      // Number styling (no decimals for ticket counts)
+      const numberStyle = {
+        numFmt: "0", // Format as whole number (no decimals)
+      };
+
+      // Basic info headers (Row 1 and 2) - merge vertically
+      basicInfoCols.forEach((header, index) => {
+        const cellAddress1 = XLSX.utils.encode_cell({ r: 0, c: currentCol });
+        worksheet[cellAddress1] = {
+          v: header,
+          t: "s",
+          s: headerStyle,
+        };
+
+        // Add vertical merge for basic info columns (merge row 0 and row 1)
+        merges.push({
+          s: { r: 0, c: currentCol },
+          e: { r: 1, c: currentCol },
+        });
+
+        currentCol++;
+      });
+
+      DAYS_OF_WEEK.forEach((day) => {
+        // Create day header spanning across all brand columns + total column
+        const startCol = currentCol;
+        const endCol = currentCol + LOTTERY_BRANDS.length; // +1 for total column, but -1 because endCol is inclusive
+
+        // Day name in first row (merged across all brand columns + total)
+        const dayHeaderCell = XLSX.utils.encode_cell({ r: 0, c: startCol });
+        worksheet[dayHeaderCell] = {
+          v: day,
+          t: "s",
+          s: headerStyle,
+        };
+
+        // Add horizontal merge range for day header
+        merges.push({
+          s: { r: 0, c: startCol },
+          e: { r: 0, c: endCol },
+        });
+
+        // Brand names in second row
+        LOTTERY_BRANDS.forEach((brand) => {
+          const brandHeaderCell = XLSX.utils.encode_cell({
+            r: 1,
+            c: currentCol,
+          });
+          worksheet[brandHeaderCell] = {
+            v: brand,
+            t: "s",
+            s: headerStyle,
+          };
+          currentCol++;
+        });
+
+        // Day total column
+        const totalHeaderCell = XLSX.utils.encode_cell({ r: 1, c: currentCol });
+        worksheet[totalHeaderCell] = {
+          v: "Total",
+          t: "s",
+          s: headerStyle,
+        };
+        currentCol++;
+      });
+
+      // Weekly Total and Date headers - merge vertically
+      ["Weekly Total", "Date"].forEach((header) => {
+        const cellAddress1 = XLSX.utils.encode_cell({ r: 0, c: currentCol });
+        worksheet[cellAddress1] = {
+          v: header,
+          t: "s",
+          s: headerStyle,
+        };
+
+        // Add vertical merge for final columns (merge row 0 and row 1)
+        merges.push({
+          s: { r: 0, c: currentCol },
+          e: { r: 1, c: currentCol },
+        });
+
+        currentCol++;
+      });
+
+      // Add data rows starting from row 3 (index 2)
+      exportData.forEach((rowData, rowIndex) => {
+        let colIndex = 0;
+
+        // Basic info columns
+        basicInfoCols.forEach((col) => {
+          const cellAddress = XLSX.utils.encode_cell({
+            r: rowIndex + 2,
+            c: colIndex,
+          });
+          worksheet[cellAddress] = {
+            v: rowData[col] || "",
+            t: typeof rowData[col] === "number" ? "n" : "s",
+          };
+          colIndex++;
+        });
+
+        // Day-brand matrix
+        DAYS_OF_WEEK.forEach((day) => {
+          LOTTERY_BRANDS.forEach((brand) => {
+            const cellAddress = XLSX.utils.encode_cell({
+              r: rowIndex + 2,
+              c: colIndex,
+            });
+            const value = rowData[`${day}_${brand}`] || 0;
+            worksheet[cellAddress] = {
+              v: value,
+              t: "n",
+              s: numberStyle,
+            };
+            colIndex++;
+          });
+
+          // Day total
+          const cellAddress = XLSX.utils.encode_cell({
+            r: rowIndex + 2,
+            c: colIndex,
+          });
+          const value = rowData[`${day}_Total`] || 0;
+          worksheet[cellAddress] = {
+            v: value,
+            t: "n",
+            s: numberStyle,
+          };
+          colIndex++;
+        });
+
+        // Weekly total and date
+        const weeklyTotalCell = XLSX.utils.encode_cell({
+          r: rowIndex + 2,
+          c: colIndex,
+        });
+        worksheet[weeklyTotalCell] = {
+          v: rowData["Weekly Total"] || 0,
+          t: "n",
+          s: numberStyle,
+        };
+        colIndex++;
+
+        const dateCell = XLSX.utils.encode_cell({
+          r: rowIndex + 2,
+          c: colIndex,
+        });
+        worksheet[dateCell] = { v: rowData.Date || "", t: "s" };
+      });
+
+      // Set worksheet range
+      const lastRow = exportData.length + 1; // +2 for headers -1 for 0-based indexing
+      const lastCol = currentCol - 1;
+      worksheet["!ref"] = `A1:${XLSX.utils.encode_col(lastCol)}${lastRow + 1}`;
+
+      // Add merges
+      worksheet["!merges"] = merges;
+
+      // Set column widths to accommodate header content
       const colWidths = [];
-      for (let C = detailsRange.s.c; C <= detailsRange.e.c; ++C) {
-        let maxWidth = 10;
-        for (let R = detailsRange.s.r; R <= detailsRange.e.r; ++R) {
-          const cellAddress = XLSX.utils.encode_cell({ c: C, r: R });
-          const cell = detailsSheet[cellAddress];
-          if (cell && cell.v) {
-            const cellValueLength = cell.v.toString().length;
-            maxWidth = Math.max(maxWidth, cellValueLength);
+      const basicInfoWidths = [15, 12, 12, 15, 15, 15, 15, 15]; // Adjusted for header lengths
+
+      for (let i = 0; i <= lastCol; i++) {
+        if (i < 8) {
+          // Basic info columns - use specific widths for each column
+          colWidths.push({ wch: basicInfoWidths[i] });
+        } else if (i >= lastCol - 1) {
+          // Weekly Total and Date - wider for these headers
+          colWidths.push({ wch: i === lastCol - 1 ? 15 : 12 }); // Weekly Total wider
+        } else {
+          // Brand and total columns - wider for brand names
+          const colInDay = (i - 8) % (LOTTERY_BRANDS.length + 1);
+          if (colInDay === LOTTERY_BRANDS.length) {
+            // Day total column
+            colWidths.push({ wch: 10 });
+          } else {
+            // Brand columns - wider for brand names like "Supiri Dhana Sampatha"
+            colWidths.push({ wch: 18 });
           }
         }
-        colWidths.push({ wch: Math.min(maxWidth + 2, 50) });
       }
-      detailsSheet["!cols"] = colWidths;
+      worksheet["!cols"] = colWidths;
 
-      XLSX.utils.book_append_sheet(workbook, detailsSheet, "Sales Details");
+      // Add freeze panes (freeze first 8 columns + 2 header rows)
+      worksheet["!freeze"] = { xSplit: 8, ySplit: 2 };
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Details");
 
       // Sheet 2: Summary by Brand
       const brandSummary = {};
+
+      // Initialize brand summary with all brands
+      LOTTERY_BRANDS.forEach((brand) => {
+        brandSummary[brand] = {
+          "Brand Name": brand,
+          "Total Monday": 0,
+          "Total Tuesday": 0,
+          "Total Wednesday": 0,
+          "Total Thursday": 0,
+          "Total Friday": 0,
+          "Total Saturday": 0,
+          "Total Sunday": 0,
+          "Brand Total": 0,
+        };
+      });
+
+      // Calculate totals from the new matrix format
       exportData.forEach((row) => {
-        if (!brandSummary[row["Brand Name"]]) {
-          brandSummary[row["Brand Name"]] = {
-            "Brand Name": row["Brand Name"],
-            "Total Monday": 0,
-            "Total Tuesday": 0,
-            "Total Wednesday": 0,
-            "Total Thursday": 0,
-            "Total Friday": 0,
-            "Total Saturday": 0,
-            "Total Sunday": 0,
-            "Brand Total": 0,
-          };
-        }
-        brandSummary[row["Brand Name"]]["Total Monday"] += row.Monday;
-        brandSummary[row["Brand Name"]]["Total Tuesday"] += row.Tuesday;
-        brandSummary[row["Brand Name"]]["Total Wednesday"] += row.Wednesday;
-        brandSummary[row["Brand Name"]]["Total Thursday"] += row.Thursday;
-        brandSummary[row["Brand Name"]]["Total Friday"] += row.Friday;
-        brandSummary[row["Brand Name"]]["Total Saturday"] += row.Saturday;
-        brandSummary[row["Brand Name"]]["Total Sunday"] += row.Sunday;
-        brandSummary[row["Brand Name"]]["Brand Total"] += row["Weekly Total"];
+        LOTTERY_BRANDS.forEach((brand) => {
+          DAYS_OF_WEEK.forEach((day) => {
+            const columnName = `${day}_${brand}`;
+            const value = row[columnName] || 0;
+            brandSummary[brand][`Total ${day}`] += value;
+            brandSummary[brand]["Brand Total"] += value;
+          });
+        });
       });
 
       const brandSummaryData = Object.values(brandSummary);
       const brandSheet = XLSX.utils.json_to_sheet(brandSummaryData);
+
+      // Format Brand Summary as Excel Table
+      if (brandSummaryData.length > 0) {
+        const brandRange = XLSX.utils.decode_range(brandSheet["!ref"]);
+        const brandTableRange = `A1:${XLSX.utils.encode_col(brandRange.e.c)}${
+          brandRange.e.r + 1
+        }`;
+        brandSheet["!tables"] = [
+          {
+            ref: brandTableRange,
+            name: "BrandSummary",
+            headerRowCount: 1,
+            totalsRowCount: 0,
+            style: {
+              theme: "TableStyleMedium3",
+              showFirstColumn: false,
+              showLastColumn: false,
+              showRowStripes: true,
+              showColumnStripes: false,
+            },
+          },
+        ];
+      }
+
       brandSheet["!cols"] = [
         { wch: 20 }, // Brand Name
         { wch: 12 }, // Monday
@@ -267,6 +545,10 @@ router.get("/export", authenticateToken, async (req, res) => {
         { wch: 12 }, // Sunday
         { wch: 15 }, // Brand Total
       ];
+
+      // Add freeze panes for Brand Summary
+      brandSheet["!freeze"] = { xSplit: 0, ySplit: 1 };
+
       XLSX.utils.book_append_sheet(workbook, brandSheet, "Brand Summary");
 
       // Sheet 3: Summary by District
@@ -303,12 +585,40 @@ router.get("/export", authenticateToken, async (req, res) => {
       );
 
       const districtSheet = XLSX.utils.json_to_sheet(districtSummaryData);
+
+      // Format District Summary as Excel Table
+      if (districtSummaryData.length > 0) {
+        const districtRange = XLSX.utils.decode_range(districtSheet["!ref"]);
+        const districtTableRange = `A1:${XLSX.utils.encode_col(
+          districtRange.e.c
+        )}${districtRange.e.r + 1}`;
+        districtSheet["!tables"] = [
+          {
+            ref: districtTableRange,
+            name: "DistrictSummary",
+            headerRowCount: 1,
+            totalsRowCount: 0,
+            style: {
+              theme: "TableStyleMedium4",
+              showFirstColumn: false,
+              showLastColumn: false,
+              showRowStripes: true,
+              showColumnStripes: false,
+            },
+          },
+        ];
+      }
+
       districtSheet["!cols"] = [
         { wch: 20 }, // District
         { wch: 18 }, // Total Submissions
         { wch: 15 }, // Total Tickets
         { wch: 15 }, // Unique Dealers
       ];
+
+      // Add freeze panes for District Summary
+      districtSheet["!freeze"] = { xSplit: 0, ySplit: 1 };
+
       XLSX.utils.book_append_sheet(workbook, districtSheet, "District Summary");
 
       // Generate Excel file
