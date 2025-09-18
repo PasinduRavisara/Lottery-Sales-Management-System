@@ -194,7 +194,7 @@ export default function SubmissionDetails() {
                 <span>Print</span>
               </button>
 
-              {user?.role === "ADMIN" && (
+              {user?.role === "TERRITORY_MANAGER" && (
                 <button
                   onClick={handleDelete}
                   className="btn-danger flex items-center space-x-2"
