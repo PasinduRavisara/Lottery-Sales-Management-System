@@ -44,24 +44,10 @@ router.get("/summary", authenticateToken, async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    // Calculate summary statistics
+    // Calculate summary statistics using pre-calculated totals
     const totalSubmissions = submissions.length;
     const totalTickets = submissions.reduce((total, submission) => {
-      return (
-        total +
-        submission.dailySales.reduce((subTotal, dailySale) => {
-          return (
-            subTotal +
-            dailySale.monday +
-            dailySale.tuesday +
-            dailySale.wednesday +
-            dailySale.thursday +
-            dailySale.friday +
-            dailySale.saturday +
-            dailySale.sunday
-          );
-        }, 0)
-      );
+      return total + submission.totalTickets;
     }, 0);
 
     // Brand-wise summary
@@ -88,14 +74,7 @@ router.get("/summary", authenticateToken, async (req, res) => {
         brandSummary[dailySale.brandName].friday += dailySale.friday;
         brandSummary[dailySale.brandName].saturday += dailySale.saturday;
         brandSummary[dailySale.brandName].sunday += dailySale.sunday;
-        brandSummary[dailySale.brandName].total +=
-          dailySale.monday +
-          dailySale.tuesday +
-          dailySale.wednesday +
-          dailySale.thursday +
-          dailySale.friday +
-          dailySale.saturday +
-          dailySale.sunday;
+        brandSummary[dailySale.brandName].total += dailySale.weeklyTotal;
       });
     });
 
@@ -206,14 +185,8 @@ router.get("/export", authenticateToken, async (req, res) => {
           Friday: dailySale.friday,
           Saturday: dailySale.saturday,
           Sunday: dailySale.sunday,
-          Total:
-            dailySale.monday +
-            dailySale.tuesday +
-            dailySale.wednesday +
-            dailySale.thursday +
-            dailySale.friday +
-            dailySale.saturday +
-            dailySale.sunday,
+          "Weekly Total": dailySale.weeklyTotal,
+          "Submission Total": submission.totalTickets,
           "Submitted By": submission.user.username,
         });
       });

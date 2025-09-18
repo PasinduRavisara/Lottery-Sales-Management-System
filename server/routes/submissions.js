@@ -180,21 +180,66 @@ router.post(
           where: { submissionId: id },
         });
 
-        // Create new daily sales
-        const dailySalesData = dailySales.map((sale) => ({
-          submissionId: id,
-          brandName: sale.brandName,
-          monday: parseInt(sale.monday) || 0,
-          tuesday: parseInt(sale.tuesday) || 0,
-          wednesday: parseInt(sale.wednesday) || 0,
-          thursday: parseInt(sale.thursday) || 0,
-          friday: parseInt(sale.friday) || 0,
-          saturday: parseInt(sale.saturday) || 0,
-          sunday: parseInt(sale.sunday) || 0,
-        }));
+        // Create new daily sales with totals
+        const dailySalesData = dailySales.map((sale) => {
+          const monday = parseInt(sale.monday) || 0;
+          const tuesday = parseInt(sale.tuesday) || 0;
+          const wednesday = parseInt(sale.wednesday) || 0;
+          const thursday = parseInt(sale.thursday) || 0;
+          const friday = parseInt(sale.friday) || 0;
+          const saturday = parseInt(sale.saturday) || 0;
+          const sunday = parseInt(sale.sunday) || 0;
 
+          // Calculate weekly total for this brand
+          const weeklyTotal =
+            monday +
+            tuesday +
+            wednesday +
+            thursday +
+            friday +
+            saturday +
+            sunday;
+
+          return {
+            submissionId: id,
+            brandName: sale.brandName,
+            monday,
+            tuesday,
+            wednesday,
+            thursday,
+            friday,
+            saturday,
+            sunday,
+            weeklyTotal,
+          };
+        });
+
+        // Calculate grand total for the entire submission
+        const grandTotal = dailySalesData.reduce(
+          (total, sale) => total + sale.weeklyTotal,
+          0
+        );
+
+        // Create new daily sales records
         await prisma.dailySales.createMany({
           data: dailySalesData,
+        });
+
+        // Update submission with totals
+        await prisma.salesSubmission.update({
+          where: { id },
+          data: {
+            district,
+            city,
+            dealerName,
+            dealerNumber,
+            assistantName,
+            salesMethod,
+            salesLocation,
+            totalTickets: grandTotal,
+            grandTotal: grandTotal,
+            isDraft,
+          },
         });
 
         const result = await prisma.salesSubmission.findUnique({
@@ -211,7 +256,25 @@ router.post(
         });
       }
 
-      // Create new submission
+      // Calculate grand total first
+      const dailySalesTemp = dailySales.map((sale) => {
+        const monday = parseInt(sale.monday) || 0;
+        const tuesday = parseInt(sale.tuesday) || 0;
+        const wednesday = parseInt(sale.wednesday) || 0;
+        const thursday = parseInt(sale.thursday) || 0;
+        const friday = parseInt(sale.friday) || 0;
+        const saturday = parseInt(sale.saturday) || 0;
+        const sunday = parseInt(sale.sunday) || 0;
+        return (
+          monday + tuesday + wednesday + thursday + friday + saturday + sunday
+        );
+      });
+      const submissionGrandTotal = dailySalesTemp.reduce(
+        (total, weeklyTotal) => total + weeklyTotal,
+        0
+      );
+
+      // Create new submission with totals
       const submission = await prisma.salesSubmission.create({
         data: {
           userId: req.user.id,
@@ -222,23 +285,41 @@ router.post(
           assistantName,
           salesMethod,
           salesLocation,
+          totalTickets: submissionGrandTotal,
+          grandTotal: submissionGrandTotal,
           isDraft,
         },
       });
 
-      // Create daily sales records
-      const dailySalesData = dailySales.map((sale) => ({
-        submissionId: submission.id,
-        brandName: sale.brandName,
-        monday: parseInt(sale.monday) || 0,
-        tuesday: parseInt(sale.tuesday) || 0,
-        wednesday: parseInt(sale.wednesday) || 0,
-        thursday: parseInt(sale.thursday) || 0,
-        friday: parseInt(sale.friday) || 0,
-        saturday: parseInt(sale.saturday) || 0,
-        sunday: parseInt(sale.sunday) || 0,
-      }));
+      // Create daily sales records with totals
+      const dailySalesData = dailySales.map((sale) => {
+        const monday = parseInt(sale.monday) || 0;
+        const tuesday = parseInt(sale.tuesday) || 0;
+        const wednesday = parseInt(sale.wednesday) || 0;
+        const thursday = parseInt(sale.thursday) || 0;
+        const friday = parseInt(sale.friday) || 0;
+        const saturday = parseInt(sale.saturday) || 0;
+        const sunday = parseInt(sale.sunday) || 0;
 
+        // Calculate weekly total for this brand
+        const weeklyTotal =
+          monday + tuesday + wednesday + thursday + friday + saturday + sunday;
+
+        return {
+          submissionId: submission.id,
+          brandName: sale.brandName,
+          monday,
+          tuesday,
+          wednesday,
+          thursday,
+          friday,
+          saturday,
+          sunday,
+          weeklyTotal,
+        };
+      });
+
+      // Create all daily sales records
       await prisma.dailySales.createMany({
         data: dailySalesData,
       });
