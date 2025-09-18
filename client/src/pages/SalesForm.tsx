@@ -457,6 +457,14 @@ const SalesForm = () => {
                                 parseInt(e.target.value) || 0
                               )
                             }
+                            onFocus={(e) => {
+                              // Select all text when input is focused
+                              e.target.select();
+                            }}
+                            onClick={(e) => {
+                              // Also select all text when clicked
+                              e.currentTarget.select();
+                            }}
                           />
                         </td>
                       ))}
