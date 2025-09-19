@@ -236,8 +236,9 @@ router.get("/export", authenticateToken, async (req, res) => {
       }, 0);
       rowData["Weekly Total"] = overallTotal;
 
-      // Add date as last column
-      rowData.Date = submission.createdAt.toISOString().split("T")[0];
+      // Add created and updated dates as last columns
+      rowData["Created Date"] = submission.createdAt.toISOString().split("T")[0];
+      rowData["Updated Date"] = submission.updatedAt.toISOString().split("T")[0];
 
       exportData.push(rowData);
     });
@@ -271,7 +272,7 @@ router.get("/export", authenticateToken, async (req, res) => {
         "Sales Location",
       ];
       const totalCols =
-        8 + DAYS_OF_WEEK.length * (LOTTERY_BRANDS.length + 1) + 2; // +1 for day total, +2 for weekly total and date
+        8 + DAYS_OF_WEEK.length * (LOTTERY_BRANDS.length + 1) + 3; // +1 for day total, +3 for weekly total, created date, and updated date
 
       // Create multi-level headers
       let currentCol = 0;
@@ -356,8 +357,8 @@ router.get("/export", authenticateToken, async (req, res) => {
         currentCol++;
       });
 
-      // Weekly Total and Date headers - merge vertically
-      ["Weekly Total", "Date"].forEach((header) => {
+      // Weekly Total, Created Date, and Updated Date headers - merge vertically
+      ["Weekly Total", "Created Date", "Updated Date"].forEach((header) => {
         const cellAddress1 = XLSX.utils.encode_cell({ r: 0, c: currentCol });
         worksheet[cellAddress1] = {
           v: header,
@@ -421,7 +422,7 @@ router.get("/export", authenticateToken, async (req, res) => {
           colIndex++;
         });
 
-        // Weekly total and date
+        // Weekly total, created date, and updated date
         const weeklyTotalCell = XLSX.utils.encode_cell({
           r: rowIndex + 2,
           c: colIndex,
@@ -433,11 +434,18 @@ router.get("/export", authenticateToken, async (req, res) => {
         };
         colIndex++;
 
-        const dateCell = XLSX.utils.encode_cell({
+        const createdDateCell = XLSX.utils.encode_cell({
           r: rowIndex + 2,
           c: colIndex,
         });
-        worksheet[dateCell] = { v: rowData.Date || "", t: "s" };
+        worksheet[createdDateCell] = { v: rowData["Created Date"] || "", t: "s" };
+        colIndex++;
+
+        const updatedDateCell = XLSX.utils.encode_cell({
+          r: rowIndex + 2,
+          c: colIndex,
+        });
+        worksheet[updatedDateCell] = { v: rowData["Updated Date"] || "", t: "s" };
       });
 
       // Set worksheet range
@@ -456,9 +464,15 @@ router.get("/export", authenticateToken, async (req, res) => {
         if (i < 8) {
           // Basic info columns - use specific widths for each column
           colWidths.push({ wch: basicInfoWidths[i] });
-        } else if (i >= lastCol - 1) {
-          // Weekly Total and Date - wider for these headers
-          colWidths.push({ wch: i === lastCol - 1 ? 15 : 12 }); // Weekly Total wider
+        } else if (i >= lastCol - 2) {
+          // Weekly Total, Created Date, and Updated Date - wider for these headers
+          if (i === lastCol - 2) {
+            colWidths.push({ wch: 15 }); // Weekly Total
+          } else if (i === lastCol - 1) {
+            colWidths.push({ wch: 12 }); // Created Date
+          } else {
+            colWidths.push({ wch: 12 }); // Updated Date
+          }
         } else {
           // Brand and total columns - wider for brand names
           const colInDay = (i - 8) % (LOTTERY_BRANDS.length + 1);
@@ -510,17 +524,6 @@ router.get("/export", authenticateToken, async (req, res) => {
 
       const brandSummaryData = Object.values(brandSummary);
       const brandSheet = XLSX.utils.json_to_sheet(brandSummaryData);
-
-      // Ensure header row is bold for Brand Summary sheet
-      if (brandSheet["!ref"]) {
-        const headerRange = XLSX.utils.decode_range(brandSheet["!ref"]);
-        for (let c = headerRange.s.c; c <= headerRange.e.c; c++) {
-          const addr = XLSX.utils.encode_cell({ r: 0, c });
-          if (brandSheet[addr]) {
-            brandSheet[addr].s = headerStyle;
-          }
-        }
-      }
 
       // Format Brand Summary as Excel Table
       if (brandSummaryData.length > 0) {
@@ -596,17 +599,6 @@ router.get("/export", authenticateToken, async (req, res) => {
       );
 
       const districtSheet = XLSX.utils.json_to_sheet(districtSummaryData);
-
-      // Ensure header row is bold for District Summary sheet
-      if (districtSheet["!ref"]) {
-        const headerRange = XLSX.utils.decode_range(districtSheet["!ref"]);
-        for (let c = headerRange.s.c; c <= headerRange.e.c; c++) {
-          const addr = XLSX.utils.encode_cell({ r: 0, c });
-          if (districtSheet[addr]) {
-            districtSheet[addr].s = headerStyle;
-          }
-        }
-      }
 
       // Format District Summary as Excel Table
       if (districtSummaryData.length > 0) {
