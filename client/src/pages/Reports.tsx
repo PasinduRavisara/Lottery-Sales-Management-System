@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Eye, Download, Filter, Trash2, FileSpreadsheet, Edit } from "lucide-react";
+import { Eye, Download, Trash2, FileSpreadsheet, Edit, ChevronUp, ChevronDown } from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import { submissionsAPI } from "../lib/api";
@@ -19,12 +19,18 @@ interface Submission {
   };
 }
 
+type SortField = 'status' | 'date' | 'submittedBy';
+type SortOrder = 'asc' | 'desc';
+
 export default function Reports() {
   const { user } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [sortedSubmissions, setSortedSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,13 +57,59 @@ export default function Reports() {
     try {
       setIsLoading(true);
       const response = await submissionsAPI.getAll();
-      setSubmissions(response.data.submissions || []);
+      const fetchedSubmissions = response.data.submissions || [];
+      setSubmissions(fetchedSubmissions);
+      setSortedSubmissions(fetchedSubmissions);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       toast.error("Failed to load submissions");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSort = (field: SortField) => {
+    let newOrder: SortOrder = 'asc';
+    
+    if (sortField === field && sortOrder === 'asc') {
+      newOrder = 'desc';
+    }
+    
+    setSortField(field);
+    setSortOrder(newOrder);
+    
+    const sorted = [...submissions].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+      
+      switch (field) {
+        case 'status':
+          aValue = a.isDraft ? 'Draft' : 'Completed';
+          bValue = b.isDraft ? 'Draft' : 'Completed';
+          break;
+        case 'date':
+          aValue = new Date(a.createdAt);
+          bValue = new Date(b.createdAt);
+          break;
+        case 'submittedBy':
+          aValue = a.user.username.toLowerCase();
+          bValue = b.user.username.toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aValue < bValue) return newOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return newOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+    
+    setSortedSubmissions(sorted);
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return null;
+    return sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />;
   };
 
   const handleDeleteSubmission = async (
@@ -164,11 +216,6 @@ export default function Reports() {
                 : "My Submissions"}
             </h2>
             <div className="flex items-center space-x-4">
-              <button className="btn-secondary">
-                <Filter className="h-4 w-4 mr-2" />
-                Filter
-              </button>
-
               {/* Export Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -213,16 +260,40 @@ export default function Reports() {
                   <tr className="table-header">
                     <th className="table-cell text-left">Dealer</th>
                     <th className="table-cell text-left">Location</th>
-                    <th className="table-cell text-center">Status</th>
-                    <th className="table-cell text-center">Date</th>
+                    <th 
+                      className="table-cell text-center cursor-pointer hover:bg-blue-700 transition-colors"
+                      onClick={() => handleSort('status')}
+                    >
+                      <div className="flex items-center justify-center space-x-1">
+                        <span>Status</span>
+                        {getSortIcon('status')}
+                      </div>
+                    </th>
+                    <th 
+                      className="table-cell text-center cursor-pointer hover:bg-blue-700 transition-colors"
+                      onClick={() => handleSort('date')}
+                    >
+                      <div className="flex items-center justify-center space-x-1">
+                        <span>Date</span>
+                        {getSortIcon('date')}
+                      </div>
+                    </th>
                     {user?.role === "TERRITORY_MANAGER" && (
-                      <th className="table-cell text-center">Submitted By</th>
+                      <th 
+                        className="table-cell text-center cursor-pointer hover:bg-blue-700 transition-colors"
+                        onClick={() => handleSort('submittedBy')}
+                      >
+                        <div className="flex items-center justify-center space-x-1">
+                          <span>Submitted By</span>
+                          {getSortIcon('submittedBy')}
+                        </div>
+                      </th>
                     )}
                     <th className="table-cell text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {submissions.map((submission) => (
+                  {(sortedSubmissions.length > 0 ? sortedSubmissions : submissions).map((submission) => (
                     <tr key={submission.id} className="lottery-brand-row">
                       <td className="table-cell font-medium">
                         {submission.dealerName}
