@@ -5,6 +5,7 @@ interface User {
   id: string;
   username: string;
   role: "TERRITORY_MANAGER" | "SALES_PROMOTION_ASSISTANT";
+  district?: string;
 }
 
 interface AuthState {

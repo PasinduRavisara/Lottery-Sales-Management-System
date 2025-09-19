@@ -15,6 +15,7 @@ model User {
   username     String   @unique
   passwordHash String   @map("password_hash")
   role         UserRole @default(SALES_PROMOTION_ASSISTANT)
+  district     String?  
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 

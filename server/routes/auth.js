@@ -57,6 +57,7 @@ router.post(
           id: user.id,
           username: user.username,
           role: user.role,
+          district: user.district,
         },
       });
     } catch (error) {
@@ -72,11 +73,22 @@ router.get(
   require("../middleware/auth").authenticateToken,
   async (req, res) => {
     try {
+      // Get fresh user data from database including district
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: { id: true, username: true, role: true, district: true },
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
       res.json({
         user: {
-          id: req.user.id,
-          username: req.user.username,
-          role: req.user.role,
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          district: user.district,
         },
       });
     } catch (error) {

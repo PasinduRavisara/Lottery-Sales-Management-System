@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Save, Trash2, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { submissionsAPI } from "../lib/api";
+import { useAuth } from "../lib/auth";
 import {
   LOTTERY_BRANDS,
   DAYS_OF_WEEK,
@@ -15,13 +16,14 @@ import Layout from "../components/Layout";
 
 const SalesForm = () => {
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const editId = searchParams.get("edit");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [customSalesMethod, setCustomSalesMethod] = useState("");
   const [formData, setFormData] = useState({
     id: "", // Add id field for updates
-    district: "",
+    district: user?.district || "",
     city: "",
     dealerName: "",
     dealerNumber: "",
@@ -39,6 +41,16 @@ const SalesForm = () => {
       sunday: 0,
     })),
   });
+
+  // Set user's district when user data loads
+  useEffect(() => {
+    if (user?.district && !editId) {
+      setFormData((prev) => ({
+        ...prev,
+        district: user.district,
+      }));
+    }
+  }, [user?.district, editId]);
 
   // Load draft for editing if editId is present
   useEffect(() => {
@@ -73,21 +85,26 @@ const SalesForm = () => {
           const existingSale = submission.dailySales.find(
             (sale: any) => sale.brandName === brand
           );
-          return existingSale || {
-            brandName: brand,
-            monday: 0,
-            tuesday: 0,
-            wednesday: 0,
-            thursday: 0,
-            friday: 0,
-            saturday: 0,
-            sunday: 0,
-          };
+          return (
+            existingSale || {
+              brandName: brand,
+              monday: 0,
+              tuesday: 0,
+              wednesday: 0,
+              thursday: 0,
+              friday: 0,
+              saturday: 0,
+              sunday: 0,
+            }
+          );
         }),
       });
 
       // Handle custom sales method
-      if (submission.salesMethod && !SALES_METHODS.includes(submission.salesMethod)) {
+      if (
+        submission.salesMethod &&
+        !SALES_METHODS.includes(submission.salesMethod)
+      ) {
         setCustomSalesMethod(submission.salesMethod);
       }
 
@@ -213,7 +230,7 @@ const SalesForm = () => {
 
     try {
       setIsLoading(true);
-      
+
       if (formData.id) {
         // Update existing submission
         await submissionsAPI.update(formData.id, {
@@ -227,7 +244,9 @@ const SalesForm = () => {
           ...formData,
           isDraft: false,
         });
-        toast.success("Sales submission created successfully! You can submit another one.");
+        toast.success(
+          "Sales submission created successfully! You can submit another one."
+        );
       }
 
       // Reset form for next submission only if it was a new submission
@@ -264,7 +283,7 @@ const SalesForm = () => {
   const handleSaveAsDraft = async () => {
     try {
       setIsLoading(true);
-      
+
       // For drafts, allow minimal data - just ensure we have some basic info
       const draftData = {
         ...formData,
@@ -288,7 +307,7 @@ const SalesForm = () => {
         const response = await submissionsAPI.create(draftData);
         // Update form with the new ID so subsequent saves are updates
         if (response.data.submission?.id) {
-          setFormData(prev => ({ ...prev, id: response.data.submission.id }));
+          setFormData((prev) => ({ ...prev, id: response.data.submission.id }));
         }
         toast.success("Draft saved successfully!");
       }
@@ -338,307 +357,341 @@ const SalesForm = () => {
         </div>
       ) : (
         <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {formData.id ? "Edit Sales Submission" : "Daily Sales Submission"}
-            </h1>
-            <p className="text-gray-600 mt-1">
-              {formData.id ? "Update your draft submission" : "Submit your daily lottery sales data"}
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {formData.id
+                  ? "Edit Sales Submission"
+                  : "Daily Sales Submission"}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {formData.id
+                  ? "Update your draft submission"
+                  : "Submit your daily lottery sales data"}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <motion.form
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-          onSubmit={handleSubmit}
-        >
-          {/* General Information */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              General Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  District *
-                </label>
-                <select
-                  className="input-field"
-                  value={formData.district}
-                  onChange={(e) =>
-                    handleInputChange("district", e.target.value)
-                  }
-                  required
-                >
-                  <option value="">Select district</option>
-                  {SRI_LANKA_DISTRICTS.map((district) => (
-                    <option key={district} value={district}>
-                      {district}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City *
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Dealer Name *
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  value={formData.dealerName}
-                  onChange={(e) =>
-                    handleInputChange("dealerName", e.target.value)
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Dealer Number *
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  value={formData.dealerNumber}
-                  onChange={(e) =>
-                    handleNumericInputChange("dealerNumber", e.target.value)
-                  }
-                  onKeyPress={(e) => {
-                    // Allow: numbers (0-9)
-                    if (!/[0-9]/.test(e.key)) {
-                      e.preventDefault();
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+            onSubmit={handleSubmit}
+          >
+            {/* General Information */}
+            <div className="card">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                General Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    District *
+                    {user?.district && (
+                      <span className="text-green-600 text-xs ml-2">
+                        (Your assigned district)
+                      </span>
+                    )}
+                  </label>
+                  <select
+                    className={`input-field ${
+                      user?.district && formData.district === user.district
+                        ? "bg-green-50 border-green-300"
+                        : ""
+                    }`}
+                    value={formData.district}
+                    onChange={(e) =>
+                      handleInputChange("district", e.target.value)
                     }
-                  }}
-                  onKeyDown={(e) => {
-                    // Allow: backspace, delete, tab, escape, enter, home, end, arrow keys
-                    if (
-                      [8, 9, 27, 13, 46, 35, 36, 37, 38, 39, 40].indexOf(
-                        e.keyCode
-                      ) !== -1 ||
-                      // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                      (e.keyCode === 65 && e.ctrlKey === true) ||
-                      (e.keyCode === 67 && e.ctrlKey === true) ||
-                      (e.keyCode === 86 && e.ctrlKey === true) ||
-                      (e.keyCode === 88 && e.ctrlKey === true)
-                    ) {
-                      return;
-                    }
-                    // Ensure that it is a number and stop the keypress
-                    if (
-                      (e.shiftKey || e.keyCode < 48 || e.keyCode > 57) &&
-                      (e.keyCode < 96 || e.keyCode > 105)
-                    ) {
-                      e.preventDefault();
-                    }
-                  }}
-                  maxLength={VALIDATION_RULES.DEALER_NUMBER_LENGTH}
-                  placeholder="123456 (exactly 6 digits)"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Assistant Name *
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  value={formData.assistantName}
-                  onChange={(e) =>
-                    handleInputChange("assistantName", e.target.value)
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sales Method *
-                </label>
-                <select
-                  className="input-field"
-                  value={
-                    SALES_METHODS.includes(formData.salesMethod)
-                      ? formData.salesMethod
-                      : "Other"
-                  }
-                  onChange={(e) => handleSalesMethodChange(e.target.value)}
-                  required
-                >
-                  <option value="">Select method</option>
-                  {SALES_METHODS.map((method) => (
-                    <option key={method} value={method}>
-                      {method}
-                    </option>
-                  ))}
-                </select>
-                {(formData.salesMethod === "Other" ||
-                  !SALES_METHODS.includes(formData.salesMethod)) && (
+                    required
+                  >
+                    <option value="">Select district</option>
+                    {SRI_LANKA_DISTRICTS.map((district) => (
+                      <option
+                        key={district}
+                        value={district}
+                        className={
+                          user?.district === district
+                            ? "bg-green-100 font-medium"
+                            : ""
+                        }
+                      >
+                        {district}
+                        {user?.district === district && " (Assigned)"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    City *
+                  </label>
                   <input
                     type="text"
-                    className="input-field mt-2"
-                    placeholder="Please specify..."
-                    value={
-                      formData.salesMethod === "Other"
-                        ? customSalesMethod
-                        : formData.salesMethod
-                    }
+                    className="input-field"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange("city", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Dealer Name *
+                  </label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={formData.dealerName}
                     onChange={(e) =>
-                      handleCustomSalesMethodChange(e.target.value)
+                      handleInputChange("dealerName", e.target.value)
                     }
                     required
                   />
-                )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Dealer Number *
+                  </label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={formData.dealerNumber}
+                    onChange={(e) =>
+                      handleNumericInputChange("dealerNumber", e.target.value)
+                    }
+                    onKeyPress={(e) => {
+                      // Allow: numbers (0-9)
+                      if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Allow: backspace, delete, tab, escape, enter, home, end, arrow keys
+                      if (
+                        [8, 9, 27, 13, 46, 35, 36, 37, 38, 39, 40].indexOf(
+                          e.keyCode
+                        ) !== -1 ||
+                        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                        (e.keyCode === 65 && e.ctrlKey === true) ||
+                        (e.keyCode === 67 && e.ctrlKey === true) ||
+                        (e.keyCode === 86 && e.ctrlKey === true) ||
+                        (e.keyCode === 88 && e.ctrlKey === true)
+                      ) {
+                        return;
+                      }
+                      // Ensure that it is a number and stop the keypress
+                      if (
+                        (e.shiftKey || e.keyCode < 48 || e.keyCode > 57) &&
+                        (e.keyCode < 96 || e.keyCode > 105)
+                      ) {
+                        e.preventDefault();
+                      }
+                    }}
+                    maxLength={VALIDATION_RULES.DEALER_NUMBER_LENGTH}
+                    placeholder="123456 (exactly 6 digits)"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assistant Name *
+                  </label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={formData.assistantName}
+                    onChange={(e) =>
+                      handleInputChange("assistantName", e.target.value)
+                    }
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sales Method *
+                  </label>
+                  <select
+                    className="input-field"
+                    value={
+                      SALES_METHODS.includes(formData.salesMethod)
+                        ? formData.salesMethod
+                        : "Other"
+                    }
+                    onChange={(e) => handleSalesMethodChange(e.target.value)}
+                    required
+                  >
+                    <option value="">Select method</option>
+                    {SALES_METHODS.map((method) => (
+                      <option key={method} value={method}>
+                        {method}
+                      </option>
+                    ))}
+                  </select>
+                  {(formData.salesMethod === "Other" ||
+                    !SALES_METHODS.includes(formData.salesMethod)) && (
+                    <input
+                      type="text"
+                      className="input-field mt-2"
+                      placeholder="Please specify..."
+                      value={
+                        formData.salesMethod === "Other"
+                          ? customSalesMethod
+                          : formData.salesMethod
+                      }
+                      onChange={(e) =>
+                        handleCustomSalesMethodChange(e.target.value)
+                      }
+                      required
+                    />
+                  )}
+                </div>
+              </div>
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sales Location *
+                </label>
+                <textarea
+                  className="input-field"
+                  rows={3}
+                  value={formData.salesLocation}
+                  onChange={(e) =>
+                    handleInputChange("salesLocation", e.target.value)
+                  }
+                  required
+                />
               </div>
             </div>
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sales Location *
-              </label>
-              <textarea
-                className="input-field"
-                rows={3}
-                value={formData.salesLocation}
-                onChange={(e) =>
-                  handleInputChange("salesLocation", e.target.value)
-                }
-                required
-              />
-            </div>
-          </div>
 
-          {/* Daily Sales Table */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              Daily Lottery Sales Quantity (Tickets)
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="table-header">
-                    <th className="table-cell text-left">No</th>
-                    <th className="table-cell text-left">Brand</th>
-                    {DAYS_OF_WEEK.map((day: string) => (
-                      <th
-                        key={day}
-                        className="table-cell text-center min-w-[100px]"
-                      >
-                        {day}
-                      </th>
-                    ))}
-                    <th className="table-cell text-center">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {formData.dailySales.map((sale, index) => (
-                    <tr key={sale.brandName} className="lottery-brand-row">
-                      <td className="table-cell font-medium">{index + 1}</td>
-                      <td className="table-cell font-medium">
-                        {sale.brandName}
-                      </td>
+            {/* Daily Sales Table */}
+            <div className="card">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                Daily Lottery Sales Quantity (Tickets)
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="table-header">
+                      <th className="table-cell text-left">No</th>
+                      <th className="table-cell text-left">Brand</th>
                       {DAYS_OF_WEEK.map((day: string) => (
-                        <td key={day} className="table-cell text-center">
-                          <input
-                            type="number"
-                            min="0"
-                            className="lottery-input"
-                            value={sale[day.toLowerCase() as keyof typeof sale]}
-                            onChange={(e) =>
-                              handleSalesChange(
-                                index,
-                                day,
-                                parseInt(e.target.value) || 0
-                              )
-                            }
-                            onFocus={(e) => {
-                              // Select all text when input is focused
-                              e.target.select();
-                            }}
-                            onClick={(e) => {
-                              // Also select all text when clicked
-                              e.currentTarget.select();
-                            }}
-                          />
-                        </td>
+                        <th
+                          key={day}
+                          className="table-cell text-center min-w-[100px]"
+                        >
+                          {day}
+                        </th>
                       ))}
-                      <td className="table-cell text-center font-semibold text-blue-600">
-                        {calculateTotal(sale)}
+                      <th className="table-cell text-center">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formData.dailySales.map((sale, index) => (
+                      <tr key={sale.brandName} className="lottery-brand-row">
+                        <td className="table-cell font-medium">{index + 1}</td>
+                        <td className="table-cell font-medium">
+                          {sale.brandName}
+                        </td>
+                        {DAYS_OF_WEEK.map((day: string) => (
+                          <td key={day} className="table-cell text-center">
+                            <input
+                              type="number"
+                              min="0"
+                              className="lottery-input"
+                              value={
+                                sale[day.toLowerCase() as keyof typeof sale]
+                              }
+                              onChange={(e) =>
+                                handleSalesChange(
+                                  index,
+                                  day,
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
+                              onFocus={(e) => {
+                                // Select all text when input is focused
+                                e.target.select();
+                              }}
+                              onClick={(e) => {
+                                // Also select all text when clicked
+                                e.currentTarget.select();
+                              }}
+                            />
+                          </td>
+                        ))}
+                        <td className="table-cell text-center font-semibold text-blue-600">
+                          {calculateTotal(sale)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-gray-50 font-semibold">
+                      <td className="table-cell" colSpan={2}>
+                        Grand Total
+                      </td>
+                      {DAYS_OF_WEEK.map((day: string) => {
+                        const dayTotal = formData.dailySales.reduce(
+                          (total, sale) =>
+                            total +
+                            (sale[
+                              day.toLowerCase() as keyof typeof sale
+                            ] as number),
+                          0
+                        );
+                        return (
+                          <td
+                            key={day}
+                            className="table-cell text-center text-blue-600"
+                          >
+                            {dayTotal}
+                          </td>
+                        );
+                      })}
+                      <td className="table-cell text-center text-blue-600 text-lg">
+                        {calculateGrandTotal()}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-gray-50 font-semibold">
-                    <td className="table-cell" colSpan={2}>
-                      Grand Total
-                    </td>
-                    {DAYS_OF_WEEK.map((day: string) => {
-                      const dayTotal = formData.dailySales.reduce(
-                        (total, sale) =>
-                          total +
-                          (sale[
-                            day.toLowerCase() as keyof typeof sale
-                          ] as number),
-                        0
-                      );
-                      return (
-                        <td
-                          key={day}
-                          className="table-cell text-center text-blue-600"
-                        >
-                          {dayTotal}
-                        </td>
-                      );
-                    })}
-                    <td className="table-cell text-center text-blue-600 text-lg">
-                      {calculateGrandTotal()}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+                  </tfoot>
+                </table>
+              </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={handleClearForm}
-              disabled={isLoading}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear Form
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={handleSaveAsDraft}
-              disabled={isLoading}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isLoading ? "Saving..." : "Save as Draft"}
-            </button>
-            <button type="submit" className="btn-primary" disabled={isLoading}>
-              <Eye className="h-4 w-4 mr-2" />
-              {isLoading ? (formData.id ? "Updating..." : "Submitting...") : (formData.id ? "Update Submission" : "Submit")}
-            </button>
-          </div>
-        </motion.form>
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={handleClearForm}
+                disabled={isLoading}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear Form
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={handleSaveAsDraft}
+                disabled={isLoading}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {isLoading ? "Saving..." : "Save as Draft"}
+              </button>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={isLoading}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                {isLoading
+                  ? formData.id
+                    ? "Updating..."
+                    : "Submitting..."
+                  : formData.id
+                  ? "Update Submission"
+                  : "Submit"}
+              </button>
+            </div>
+          </motion.form>
         </div>
       )}
     </Layout>
