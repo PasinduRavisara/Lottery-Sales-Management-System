@@ -237,8 +237,12 @@ router.get("/export", authenticateToken, async (req, res) => {
       rowData["Weekly Total"] = overallTotal;
 
       // Add created and updated dates as last columns
-      rowData["Created Date"] = submission.createdAt.toISOString().split("T")[0];
-      rowData["Updated Date"] = submission.updatedAt.toISOString().split("T")[0];
+      rowData["Created Date"] = submission.createdAt
+        .toISOString()
+        .split("T")[0];
+      rowData["Updated Date"] = submission.updatedAt
+        .toISOString()
+        .split("T")[0];
 
       exportData.push(rowData);
     });
@@ -438,14 +442,20 @@ router.get("/export", authenticateToken, async (req, res) => {
           r: rowIndex + 2,
           c: colIndex,
         });
-        worksheet[createdDateCell] = { v: rowData["Created Date"] || "", t: "s" };
+        worksheet[createdDateCell] = {
+          v: rowData["Created Date"] || "",
+          t: "s",
+        };
         colIndex++;
 
         const updatedDateCell = XLSX.utils.encode_cell({
           r: rowIndex + 2,
           c: colIndex,
         });
-        worksheet[updatedDateCell] = { v: rowData["Updated Date"] || "", t: "s" };
+        worksheet[updatedDateCell] = {
+          v: rowData["Updated Date"] || "",
+          t: "s",
+        };
       });
 
       // Set worksheet range
@@ -474,14 +484,14 @@ router.get("/export", authenticateToken, async (req, res) => {
             colWidths.push({ wch: 12 }); // Updated Date
           }
         } else {
-          // Brand and total columns - wider for brand names
+          // Brand and total columns - narrower for brand values (just numbers)
           const colInDay = (i - 8) % (LOTTERY_BRANDS.length + 1);
           if (colInDay === LOTTERY_BRANDS.length) {
             // Day total column
             colWidths.push({ wch: 10 });
           } else {
-            // Brand columns - wider for brand names like "Supiri Dhana Sampatha"
-            colWidths.push({ wch: 18 });
+            // Brand columns - narrower since they only contain numeric values
+            colWidths.push({ wch: 8 });
           }
         }
       }
