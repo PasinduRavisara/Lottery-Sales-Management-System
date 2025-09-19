@@ -94,29 +94,72 @@ router.post(
   "/",
   [
     authenticateToken,
+    // Only validate required fields for final submissions (not drafts)
     body("district")
-      .notEmpty()
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return value && value.trim() !== "";
+      })
       .withMessage("District is required")
-      .isIn(SRI_LANKA_DISTRICTS)
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return SRI_LANKA_DISTRICTS.includes(value);
+      })
       .withMessage("Please select a valid Sri Lankan district"),
-    body("city").notEmpty().withMessage("City is required"),
-    body("dealerName").notEmpty().withMessage("Dealer name is required"),
+    body("city")
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return value && value.trim() !== "";
+      })
+      .withMessage("City is required"),
+    body("dealerName")
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return value && value.trim() !== "";
+      })
+      .withMessage("Dealer name is required"),
     body("dealerNumber")
-      .notEmpty()
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return value && value.trim() !== "";
+      })
       .withMessage("Dealer number is required")
-      .isNumeric()
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return /^\d+$/.test(value);
+      })
       .withMessage("Dealer number must contain only numbers")
-      .isLength({
-        min: VALIDATION_RULES.DEALER_NUMBER_LENGTH,
-        max: VALIDATION_RULES.DEALER_NUMBER_LENGTH,
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return value.length === VALIDATION_RULES.DEALER_NUMBER_LENGTH;
       })
       .withMessage(
         `Dealer number must be exactly ${VALIDATION_RULES.DEALER_NUMBER_LENGTH} digits`
       ),
-    body("assistantName").notEmpty().withMessage("Assistant name is required"),
-    body("salesMethod").notEmpty().withMessage("Sales method is required"),
-    body("salesLocation").notEmpty().withMessage("Sales location is required"),
-    body("dailySales").isArray().withMessage("Daily sales data is required"),
+    body("assistantName")
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return value && value.trim() !== "";
+      })
+      .withMessage("Assistant name is required"),
+    body("salesMethod")
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return value && value.trim() !== "";
+      })
+      .withMessage("Sales method is required"),
+    body("salesLocation")
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return value && value.trim() !== "";
+      })
+      .withMessage("Sales location is required"),
+    body("dailySales")
+      .custom((value, { req }) => {
+        if (req.body.isDraft) return true; // Skip validation for drafts
+        return Array.isArray(value);
+      })
+      .withMessage("Daily sales data is required"),
   ],
   async (req, res) => {
     try {

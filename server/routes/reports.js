@@ -511,6 +511,17 @@ router.get("/export", authenticateToken, async (req, res) => {
       const brandSummaryData = Object.values(brandSummary);
       const brandSheet = XLSX.utils.json_to_sheet(brandSummaryData);
 
+      // Ensure header row is bold for Brand Summary sheet
+      if (brandSheet["!ref"]) {
+        const headerRange = XLSX.utils.decode_range(brandSheet["!ref"]);
+        for (let c = headerRange.s.c; c <= headerRange.e.c; c++) {
+          const addr = XLSX.utils.encode_cell({ r: 0, c });
+          if (brandSheet[addr]) {
+            brandSheet[addr].s = headerStyle;
+          }
+        }
+      }
+
       // Format Brand Summary as Excel Table
       if (brandSummaryData.length > 0) {
         const brandRange = XLSX.utils.decode_range(brandSheet["!ref"]);
@@ -585,6 +596,17 @@ router.get("/export", authenticateToken, async (req, res) => {
       );
 
       const districtSheet = XLSX.utils.json_to_sheet(districtSummaryData);
+
+      // Ensure header row is bold for District Summary sheet
+      if (districtSheet["!ref"]) {
+        const headerRange = XLSX.utils.decode_range(districtSheet["!ref"]);
+        for (let c = headerRange.s.c; c <= headerRange.e.c; c++) {
+          const addr = XLSX.utils.encode_cell({ r: 0, c });
+          if (districtSheet[addr]) {
+            districtSheet[addr].s = headerStyle;
+          }
+        }
+      }
 
       // Format District Summary as Excel Table
       if (districtSummaryData.length > 0) {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Eye, Download, Filter, Trash2, FileSpreadsheet } from "lucide-react";
+import { Eye, Download, Filter, Trash2, FileSpreadsheet, Edit } from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import { submissionsAPI } from "../lib/api";
@@ -251,6 +251,18 @@ export default function Reports() {
                       )}
                       <td className="table-cell text-center">
                         <div className="flex items-center justify-center space-x-2">
+                          {/* Edit button - only show for drafts and for users who can edit them */}
+                          {submission.isDraft && 
+                           (user?.role === "TERRITORY_MANAGER" || 
+                            (user?.role === "SALES_PROMOTION_ASSISTANT" && submission.user.id === user.id)) && (
+                            <Link
+                              to={`/sales-form?edit=${submission.id}`}
+                              className="text-blue-600 hover:text-blue-800 p-1"
+                              title="Edit submission"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Link>
+                          )}
                           <Link
                             to={`/submission?id=${submission.id}`}
                             className="text-blue-600 hover:text-blue-800 p-1"

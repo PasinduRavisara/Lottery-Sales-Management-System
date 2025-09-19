@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Save, Trash2, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -13,9 +14,13 @@ import {
 import Layout from "../components/Layout";
 
 const SalesForm = () => {
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("edit");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [customSalesMethod, setCustomSalesMethod] = useState("");
   const [formData, setFormData] = useState({
+    id: "", // Add id field for updates
     district: "",
     city: "",
     dealerName: "",
@@ -34,6 +39,66 @@ const SalesForm = () => {
       sunday: 0,
     })),
   });
+
+  // Load draft for editing if editId is present
+  useEffect(() => {
+    if (editId) {
+      loadDraftForEditing(editId);
+    }
+  }, [editId]);
+
+  const loadDraftForEditing = async (id: string) => {
+    try {
+      setIsLoadingDraft(true);
+      const response = await submissionsAPI.getById(id);
+      const submission = response.data;
+
+      // Check if it's actually a draft
+      if (!submission.isDraft) {
+        toast.error("Only draft submissions can be edited");
+        return;
+      }
+
+      // Populate form with existing data
+      setFormData({
+        id: submission.id,
+        district: submission.district || "",
+        city: submission.city || "",
+        dealerName: submission.dealerName || "",
+        dealerNumber: submission.dealerNumber || "",
+        assistantName: submission.assistantName || "",
+        salesMethod: submission.salesMethod || "",
+        salesLocation: submission.salesLocation || "",
+        dailySales: LOTTERY_BRANDS.map((brand) => {
+          const existingSale = submission.dailySales.find(
+            (sale: any) => sale.brandName === brand
+          );
+          return existingSale || {
+            brandName: brand,
+            monday: 0,
+            tuesday: 0,
+            wednesday: 0,
+            thursday: 0,
+            friday: 0,
+            saturday: 0,
+            sunday: 0,
+          };
+        }),
+      });
+
+      // Handle custom sales method
+      if (submission.salesMethod && !SALES_METHODS.includes(submission.salesMethod)) {
+        setCustomSalesMethod(submission.salesMethod);
+      }
+
+      toast.success("Draft loaded for editing");
+    } catch (error) {
+      console.error("Error loading draft:", error);
+      toast.error("Failed to load draft for editing");
+    } finally {
+      setIsLoadingDraft(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -148,35 +213,46 @@ const SalesForm = () => {
 
     try {
       setIsLoading(true);
-      await submissionsAPI.create({
-        ...formData,
-        isDraft: false,
-      });
+      
+      if (formData.id) {
+        // Update existing submission
+        await submissionsAPI.update(formData.id, {
+          ...formData,
+          isDraft: false,
+        });
+        toast.success("Sales submission updated successfully!");
+      } else {
+        // Create new submission
+        await submissionsAPI.create({
+          ...formData,
+          isDraft: false,
+        });
+        toast.success("Sales submission created successfully! You can submit another one.");
+      }
 
-      toast.success(
-        "Sales submission created successfully! You can submit another one."
-      );
-
-      // Reset form for next submission
-      setFormData({
-        district: "",
-        city: "",
-        dealerName: "",
-        dealerNumber: "",
-        assistantName: "",
-        salesMethod: "",
-        salesLocation: "",
-        dailySales: LOTTERY_BRANDS.map((brand) => ({
-          brandName: brand,
-          monday: 0,
-          tuesday: 0,
-          wednesday: 0,
-          thursday: 0,
-          friday: 0,
-          saturday: 0,
-          sunday: 0,
-        })),
-      });
+      // Reset form for next submission only if it was a new submission
+      if (!formData.id) {
+        setFormData({
+          id: "",
+          district: "",
+          city: "",
+          dealerName: "",
+          dealerNumber: "",
+          assistantName: "",
+          salesMethod: "",
+          salesLocation: "",
+          dailySales: LOTTERY_BRANDS.map((brand) => ({
+            brandName: brand,
+            monday: 0,
+            tuesday: 0,
+            wednesday: 0,
+            thursday: 0,
+            friday: 0,
+            saturday: 0,
+            sunday: 0,
+          })),
+        });
+      }
     } catch (error) {
       console.error("Submission error:", error);
       toast.error("Failed to submit sales data");
@@ -188,12 +264,34 @@ const SalesForm = () => {
   const handleSaveAsDraft = async () => {
     try {
       setIsLoading(true);
-      await submissionsAPI.create({
+      
+      // For drafts, allow minimal data - just ensure we have some basic info
+      const draftData = {
         ...formData,
+        // Provide defaults for required fields if empty
+        district: formData.district || "",
+        city: formData.city || "",
+        dealerName: formData.dealerName || "",
+        dealerNumber: formData.dealerNumber || "",
+        assistantName: formData.assistantName || "",
+        salesMethod: formData.salesMethod || "",
+        salesLocation: formData.salesLocation || "",
         isDraft: true,
-      });
+      };
 
-      toast.success("Draft saved successfully!");
+      if (formData.id) {
+        // Update existing draft
+        await submissionsAPI.update(formData.id, draftData);
+        toast.success("Draft updated successfully!");
+      } else {
+        // Create new draft
+        const response = await submissionsAPI.create(draftData);
+        // Update form with the new ID so subsequent saves are updates
+        if (response.data.submission?.id) {
+          setFormData(prev => ({ ...prev, id: response.data.submission.id }));
+        }
+        toast.success("Draft saved successfully!");
+      }
     } catch (error) {
       console.error("Save draft error:", error);
       toast.error("Failed to save draft");
@@ -205,6 +303,7 @@ const SalesForm = () => {
   const handleClearForm = () => {
     if (window.confirm("Are you sure you want to clear all form data?")) {
       setFormData({
+        id: "",
         district: "",
         city: "",
         dealerName: "",
@@ -230,14 +329,22 @@ const SalesForm = () => {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto space-y-6">
+      {isLoadingDraft ? (
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="loading-spinner mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading draft for editing...</p>
+          </div>
+        </div>
+      ) : (
+        <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Daily Sales Submission
+              {formData.id ? "Edit Sales Submission" : "Daily Sales Submission"}
             </h1>
             <p className="text-gray-600 mt-1">
-              Submit your daily lottery sales data
+              {formData.id ? "Update your draft submission" : "Submit your daily lottery sales data"}
             </p>
           </div>
         </div>
@@ -528,11 +635,12 @@ const SalesForm = () => {
             </button>
             <button type="submit" className="btn-primary" disabled={isLoading}>
               <Eye className="h-4 w-4 mr-2" />
-              {isLoading ? "Submitting..." : "Submit"}
+              {isLoading ? (formData.id ? "Updating..." : "Submitting...") : (formData.id ? "Update Submission" : "Submit")}
             </button>
           </div>
         </motion.form>
-      </div>
+        </div>
+      )}
     </Layout>
   );
 };
