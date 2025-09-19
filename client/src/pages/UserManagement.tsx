@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Plus, Trash2, UserPlus, Eye, EyeOff } from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
+import { SRI_LANKA_DISTRICTS } from "../lib/constants";
 import toast from "react-hot-toast";
 import { authAPI } from "../lib/api";
 
@@ -10,6 +11,7 @@ interface User {
   id: string;
   username: string;
   role: "TERRITORY_MANAGER" | "SALES_PROMOTION_ASSISTANT";
+  district?: string;
   createdAt: string;
 }
 
@@ -25,6 +27,7 @@ export default function UserManagement() {
     role: "SALES_PROMOTION_ASSISTANT" as
       | "TERRITORY_MANAGER"
       | "SALES_PROMOTION_ASSISTANT",
+    district: "",
   });
 
   useEffect(() => {
@@ -73,6 +76,7 @@ export default function UserManagement() {
         username: "",
         password: "",
         role: "SALES_PROMOTION_ASSISTANT",
+        district: "",
       });
       setShowAddForm(false);
       fetchUsers();
@@ -227,6 +231,28 @@ export default function UserManagement() {
                     <option value="TERRITORY_MANAGER">Territory Manager</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assigned District (Optional)
+                  </label>
+                  <select
+                    className="input-field"
+                    value={formData.district}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        district: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="">No specific district</option>
+                    {SRI_LANKA_DISTRICTS.map((district) => (
+                      <option key={district} value={district}>
+                        {district}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="flex justify-end space-x-4">
                 <button
@@ -271,6 +297,7 @@ export default function UserManagement() {
                   <tr className="table-header">
                     <th className="table-cell text-left">Username</th>
                     <th className="table-cell text-center">Role</th>
+                    <th className="table-cell text-center">District</th>
                     <th className="table-cell text-center">Created</th>
                     <th className="table-cell text-center">Actions</th>
                   </tr>
@@ -292,6 +319,11 @@ export default function UserManagement() {
                           {userData.role === "TERRITORY_MANAGER"
                             ? "Territory Manager"
                             : "Sales Promotion Assistant"}
+                        </span>
+                      </td>
+                      <td className="table-cell text-center">
+                        <span className="text-sm text-gray-600">
+                          {userData.district || "Not assigned"}
                         </span>
                       </td>
                       <td className="table-cell text-center">

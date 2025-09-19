@@ -47,7 +47,7 @@ const SalesForm = () => {
     if (user?.district && !editId) {
       setFormData((prev) => ({
         ...prev,
-        district: user.district,
+        district: user.district || "",
       }));
     }
   }, [user?.district, editId]);
@@ -323,7 +323,7 @@ const SalesForm = () => {
     if (window.confirm("Are you sure you want to clear all form data?")) {
       setFormData({
         id: "",
-        district: "",
+        district: user?.district || "",
         city: "",
         dealerName: "",
         dealerNumber: "",

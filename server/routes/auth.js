@@ -115,6 +115,7 @@ router.get(
           id: true,
           username: true,
           role: true,
+          district: true,
           createdAt: true,
         },
         orderBy: { createdAt: "desc" },
@@ -156,7 +157,7 @@ router.post(
         });
       }
 
-      const { username, password, role } = req.body;
+      const { username, password, role, district } = req.body;
 
       // Check if username already exists
       const existingUser = await prisma.user.findUnique({
@@ -176,11 +177,13 @@ router.post(
           username,
           passwordHash,
           role,
+          district: district || null,
         },
         select: {
           id: true,
           username: true,
           role: true,
+          district: true,
           createdAt: true,
         },
       });
