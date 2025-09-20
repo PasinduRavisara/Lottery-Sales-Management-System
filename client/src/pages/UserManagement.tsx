@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Plus, Trash2, UserPlus, Eye, EyeOff } from "lucide-react";
+import { Plus, Trash2, UserPlus, Eye, EyeOff, ChevronUp, ChevronDown } from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import { SRI_LANKA_DISTRICTS } from "../lib/constants";
@@ -16,12 +16,17 @@ interface User {
   createdAt: string;
 }
 
+type SortField = 'role' | 'district' | 'createdAt';
+type SortDirection = 'asc' | 'desc';
+
 export default function UserManagement() {
   const { user, isLoading: authLoading } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [formData, setFormData] = useState({
     username: "",
     fullName: "",
@@ -111,6 +116,53 @@ export default function UserManagement() {
       toast.error(error.response?.data?.message || "Failed to delete user");
     }
   };
+
+  // Sorting functions
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new field and default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort users based on current sort field and direction
+  const sortedUsers = useMemo(() => {
+    if (!sortField) return users;
+
+    return [...users].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortField) {
+        case 'role':
+          aValue = a.role;
+          bValue = b.role;
+          break;
+        case 'district':
+          aValue = a.district || '';
+          bValue = b.district || '';
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt);
+          bValue = new Date(b.createdAt);
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [users, sortField, sortDirection]);
 
   // Show loading while authentication is being checked
   if (authLoading) {
@@ -325,14 +377,59 @@ export default function UserManagement() {
                 <thead>
                   <tr className="table-header">
                     <th className="table-cell text-left">Full Name</th>
-                    <th className="table-cell text-center">Role</th>
-                    <th className="table-cell text-center">District</th>
-                    <th className="table-cell text-center">Created</th>
+                    <th 
+                      className="table-cell text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      onClick={() => handleSort('role')}
+                      title="Click to sort by role"
+                    >
+                      <div className="flex items-center justify-center space-x-1">
+                        <span>Role</span>
+                        {sortField === 'role' ? (
+                          sortDirection === 'asc' ? 
+                            <ChevronUp className="h-4 w-4 text-blue-600" /> : 
+                            <ChevronDown className="h-4 w-4 text-blue-600" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4 text-gray-400 opacity-50" />
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="table-cell text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      onClick={() => handleSort('district')}
+                      title="Click to sort by district"
+                    >
+                      <div className="flex items-center justify-center space-x-1">
+                        <span>District</span>
+                        {sortField === 'district' ? (
+                          sortDirection === 'asc' ? 
+                            <ChevronUp className="h-4 w-4 text-blue-600" /> : 
+                            <ChevronDown className="h-4 w-4 text-blue-600" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4 text-gray-400 opacity-50" />
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="table-cell text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      onClick={() => handleSort('createdAt')}
+                      title="Click to sort by creation date"
+                    >
+                      <div className="flex items-center justify-center space-x-1">
+                        <span>Created</span>
+                        {sortField === 'createdAt' ? (
+                          sortDirection === 'asc' ? 
+                            <ChevronUp className="h-4 w-4 text-blue-600" /> : 
+                            <ChevronDown className="h-4 w-4 text-blue-600" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4 text-gray-400 opacity-50" />
+                        )}
+                      </div>
+                    </th>
                     <th className="table-cell text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((userData) => (
+                  {sortedUsers.map((userData) => (
                     <tr key={userData.id} className="lottery-brand-row">
                       <td className="table-cell font-medium">
                         {userData.fullName}
