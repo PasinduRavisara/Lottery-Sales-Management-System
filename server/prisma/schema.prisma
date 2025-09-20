@@ -13,6 +13,7 @@ datasource db {
 model User {
   id           String   @id @default(cuid())
   username     String   @unique
+  fullName     String   @map("full_name")
   passwordHash String   @map("password_hash")
   role         UserRole @default(SALES_PROMOTION_ASSISTANT)
   district     String?  

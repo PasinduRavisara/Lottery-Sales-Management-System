@@ -4,6 +4,7 @@ import { authAPI } from "./api";
 interface User {
   id: string;
   username: string;
+  fullName: string;
   role: "TERRITORY_MANAGER" | "SALES_PROMOTION_ASSISTANT";
   district?: string;
 }

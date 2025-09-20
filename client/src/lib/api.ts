@@ -51,8 +51,10 @@ export const authAPI = {
 
   createUser: (userData: {
     username: string;
+    fullName: string;
     password: string;
     role: string;
+    district?: string;
   }) => api.post("/auth/users", userData),
 
   deleteUser: (userId: string) => api.delete(`/auth/users/${userId}`),

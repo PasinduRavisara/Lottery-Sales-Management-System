@@ -10,6 +10,7 @@ import { authAPI } from "../lib/api";
 interface User {
   id: string;
   username: string;
+  fullName: string;
   role: "TERRITORY_MANAGER" | "SALES_PROMOTION_ASSISTANT";
   district?: string;
   createdAt: string;
@@ -23,6 +24,7 @@ export default function UserManagement() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
+    fullName: "",
     password: "",
     role: "SALES_PROMOTION_ASSISTANT" as
       | "TERRITORY_MANAGER"
@@ -58,8 +60,12 @@ export default function UserManagement() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.username.trim() || !formData.password.trim()) {
-      toast.error("Username and password are required");
+    if (
+      !formData.username.trim() ||
+      !formData.fullName.trim() ||
+      !formData.password.trim()
+    ) {
+      toast.error("Username, full name, and password are required");
       return;
     }
 
@@ -74,6 +80,7 @@ export default function UserManagement() {
       toast.success("User created successfully!");
       setFormData({
         username: "",
+        fullName: "",
         password: "",
         role: "SALES_PROMOTION_ASSISTANT",
         district: "",
@@ -88,9 +95,9 @@ export default function UserManagement() {
     }
   };
 
-  const handleDeleteUser = async (userId: string, username: string) => {
+  const handleDeleteUser = async (userId: string, fullName: string) => {
     if (
-      !window.confirm(`Are you sure you want to delete user "${username}"?`)
+      !window.confirm(`Are you sure you want to delete user "${fullName}"?`)
     ) {
       return;
     }
@@ -167,7 +174,7 @@ export default function UserManagement() {
               Add New User
             </h2>
             <form onSubmit={handleAddUser} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Username *
@@ -180,7 +187,29 @@ export default function UserManagement() {
                       setFormData({ ...formData, username: e.target.value })
                     }
                     required
+                    placeholder="e.g., john_doe"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Username for login only
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={formData.fullName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fullName: e.target.value })
+                    }
+                    required
+                    placeholder="e.g., John Doe"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Display name for the system
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -295,7 +324,7 @@ export default function UserManagement() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="table-header">
-                    <th className="table-cell text-left">Username</th>
+                    <th className="table-cell text-left">Full Name</th>
                     <th className="table-cell text-center">Role</th>
                     <th className="table-cell text-center">District</th>
                     <th className="table-cell text-center">Created</th>
@@ -306,7 +335,7 @@ export default function UserManagement() {
                   {users.map((userData) => (
                     <tr key={userData.id} className="lottery-brand-row">
                       <td className="table-cell font-medium">
-                        {userData.username}
+                        {userData.fullName}
                       </td>
                       <td className="table-cell text-center">
                         <span
@@ -335,7 +364,7 @@ export default function UserManagement() {
                           userData.id !== user?.id ? (
                             <button
                               onClick={() =>
-                                handleDeleteUser(userData.id, userData.username)
+                                handleDeleteUser(userData.id, userData.fullName)
                               }
                               className="text-red-600 hover:text-red-800 p-1 transition-colors"
                               title="Delete user"

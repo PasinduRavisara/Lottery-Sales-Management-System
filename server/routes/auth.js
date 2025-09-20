@@ -56,6 +56,7 @@ router.post(
         user: {
           id: user.id,
           username: user.username,
+          fullName: user.fullName,
           role: user.role,
           district: user.district,
         },
@@ -76,7 +77,13 @@ router.get(
       // Get fresh user data from database including district
       const user = await prisma.user.findUnique({
         where: { id: req.user.id },
-        select: { id: true, username: true, role: true, district: true },
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
+          role: true,
+          district: true,
+        },
       });
 
       if (!user) {
@@ -87,6 +94,7 @@ router.get(
         user: {
           id: user.id,
           username: user.username,
+          fullName: user.fullName,
           role: user.role,
           district: user.district,
         },
@@ -114,6 +122,7 @@ router.get(
         select: {
           id: true,
           username: true,
+          fullName: true,
           role: true,
           district: true,
           createdAt: true,
@@ -138,6 +147,9 @@ router.post(
     body("username")
       .isLength({ min: 3 })
       .withMessage("Username must be at least 3 characters"),
+    body("fullName")
+      .isLength({ min: 2 })
+      .withMessage("Full name must be at least 2 characters"),
     body("password")
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters"),
@@ -157,7 +169,7 @@ router.post(
         });
       }
 
-      const { username, password, role, district } = req.body;
+      const { username, fullName, password, role, district } = req.body;
 
       // Check if username already exists
       const existingUser = await prisma.user.findUnique({
@@ -175,6 +187,7 @@ router.post(
       const user = await prisma.user.create({
         data: {
           username,
+          fullName,
           passwordHash,
           role,
           district: district || null,
@@ -182,6 +195,7 @@ router.post(
         select: {
           id: true,
           username: true,
+          fullName: true,
           role: true,
           district: true,
           createdAt: true,

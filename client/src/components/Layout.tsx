@@ -88,7 +88,7 @@ export default function Layout({ children }: LayoutProps) {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  {user?.username}
+                  {user?.fullName}
                 </p>
                 <p className="text-xs text-gray-500 capitalize">
                   {user?.role?.toLowerCase()}
@@ -138,7 +138,7 @@ export default function Layout({ children }: LayoutProps) {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  {user?.username}
+                  {user?.fullName}
                 </p>
                 <p className="text-xs text-gray-500 capitalize">
                   {user?.role?.toLowerCase()}
@@ -177,7 +177,7 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
                 <div className="hidden lg:block">
                   <p className="text-sm font-medium text-gray-900">
-                    {user?.username}
+                    {user?.fullName}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
                     {user?.role?.toLowerCase()}
