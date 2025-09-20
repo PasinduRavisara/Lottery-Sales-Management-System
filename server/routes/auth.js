@@ -199,28 +199,36 @@ router.post(
   }
 );
 
-// Delete user (zone manager only)
+// Delete user (territory manager only)
 router.delete(
   "/users/:id",
   require("../middleware/auth").authenticateToken,
-  require("../middleware/auth").requireRole(["ZONE_MANAGER"]),
+  require("../middleware/auth").requireRole(["TERRITORY_MANAGER"]),
   async (req, res) => {
     try {
       const { id } = req.params;
 
-      // Prevent admin from deleting their own account
+      // Prevent user from deleting their own account
       if (id === req.user.id) {
         return res
           .status(400)
           .json({ message: "Cannot delete your own account" });
       }
 
-      const user = await prisma.user.findUnique({
+      const userToDelete = await prisma.user.findUnique({
         where: { id },
       });
 
-      if (!user) {
+      if (!userToDelete) {
         return res.status(404).json({ message: "User not found" });
+      }
+
+      // Territory managers can only delete sales promotion assistants
+      if (userToDelete.role !== "SALES_PROMOTION_ASSISTANT") {
+        return res.status(403).json({
+          message:
+            "Territory managers can only delete sales promotion assistants",
+        });
       }
 
       await prisma.user.delete({

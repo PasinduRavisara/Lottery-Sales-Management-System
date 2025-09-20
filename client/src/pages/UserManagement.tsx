@@ -331,20 +331,31 @@ export default function UserManagement() {
                       </td>
                       <td className="table-cell text-center">
                         <div className="flex items-center justify-center space-x-2">
-                          <button
-                            onClick={() =>
-                              handleDeleteUser(userData.id, userData.username)
-                            }
-                            className="text-red-600 hover:text-red-800 p-1"
-                            disabled={userData.id === user?.id}
-                            title={
-                              userData.id === user?.id
-                                ? "Cannot delete your own account"
-                                : "Delete user"
-                            }
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          {userData.role === "SALES_PROMOTION_ASSISTANT" &&
+                          userData.id !== user?.id ? (
+                            <button
+                              onClick={() =>
+                                handleDeleteUser(userData.id, userData.username)
+                              }
+                              className="text-red-600 hover:text-red-800 p-1 transition-colors"
+                              title="Delete user"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          ) : (
+                            <span
+                              className="text-gray-400 p-1 cursor-not-allowed"
+                              title={
+                                userData.id === user?.id
+                                  ? "Cannot delete your own account"
+                                  : userData.role === "TERRITORY_MANAGER"
+                                  ? "Cannot delete other territory managers"
+                                  : "Action not available"
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </span>
+                          )}
                         </div>
                       </td>
                     </tr>
