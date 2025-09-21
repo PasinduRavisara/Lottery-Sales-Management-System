@@ -261,16 +261,32 @@ router.delete(
 // Update user profile endpoint
 router.put("/profile", authenticateToken, async (req, res) => {
   try {
-    const { fullName } = req.body;
+    const { fullName, district, profilePicture } = req.body;
     const userId = req.user.id;
 
     if (!fullName || fullName.trim() === "") {
       return res.status(400).json({ message: "Full name is required" });
     }
 
+    const updateData = {
+      fullName: fullName.trim(),
+    };
+
+    // Add district if provided
+    if (district !== undefined) {
+      updateData.district = district.trim() || null;
+    }
+
+    // For now, we'll just acknowledge the profile picture but not store it
+    // In a real app, you'd upload to cloud storage like AWS S3
+    if (profilePicture) {
+      // Could store profile picture URL in database
+      // updateData.profilePictureUrl = uploadedUrl;
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { fullName: fullName.trim() },
+      data: updateData,
       select: {
         id: true,
         username: true,

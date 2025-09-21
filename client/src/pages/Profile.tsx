@@ -1,43 +1,67 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { User, Lock, Save, AlertCircle, CheckCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  User,
+  Lock,
+  Save,
+  AlertCircle,
+  CheckCircle,
+  Camera,
+  Edit3,
+  MapPin,
+  Shield,
+  AtSign,
+  X,
+} from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
 
   const [profileData, setProfileData] = useState({
-    fullName: "",
+    fullName: user?.fullName || "",
+    district: user?.district || "",
+    profilePicture: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  useEffect(() => {
-    if (user) {
-      setProfileData((prev) => ({
-        ...prev,
-        fullName: user.fullName || "",
-      }));
-    }
-  }, [user]);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const showNotification = (type: "success" | "error", text: string) => {
+    setNotification({ type, text });
+    setTimeout(() => setNotification(null), 4000);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setProfileData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setProfileData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage({ type: "", text: "" });
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setProfileData((prev) => ({
+          ...prev,
+          profilePicture: (event.target?.result as string) || "",
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
+  const updateProfile = async () => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("/api/auth/profile", {
@@ -48,6 +72,8 @@ export default function Profile() {
         },
         body: JSON.stringify({
           fullName: profileData.fullName,
+          district: profileData.district,
+          profilePicture: profileData.profilePicture,
         }),
       });
 
@@ -55,43 +81,29 @@ export default function Profile() {
 
       if (response.ok) {
         updateUser(data.user);
-        setMessage({ type: "success", text: "Profile updated successfully!" });
+        showNotification("success", "Profile updated successfully!");
       } else {
-        setMessage({
-          type: "error",
-          text: data.message || "Failed to update profile",
-        });
+        showNotification("error", data.error || "Failed to update profile");
       }
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: "An error occurred while updating profile",
-      });
+      showNotification("error", "An error occurred while updating profile");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage({ type: "", text: "" });
-
+  const changePassword = async () => {
     if (profileData.newPassword !== profileData.confirmPassword) {
-      setMessage({ type: "error", text: "New passwords do not match" });
-      setIsLoading(false);
+      showNotification("error", "New passwords do not match");
       return;
     }
 
     if (profileData.newPassword.length < 6) {
-      setMessage({
-        type: "error",
-        text: "New password must be at least 6 characters",
-      });
-      setIsLoading(false);
+      showNotification("error", "Password must be at least 6 characters long");
       return;
     }
 
+    setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("/api/auth/change-password", {
@@ -109,24 +121,19 @@ export default function Profile() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage({ type: "success", text: "Password changed successfully!" });
         setProfileData((prev) => ({
           ...prev,
           currentPassword: "",
           newPassword: "",
           confirmPassword: "",
         }));
+        setShowPasswordForm(false);
+        showNotification("success", "Password changed successfully!");
       } else {
-        setMessage({
-          type: "error",
-          text: data.message || "Failed to change password",
-        });
+        showNotification("error", data.error || "Failed to change password");
       }
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: "An error occurred while changing password",
-      });
+      showNotification("error", "An error occurred while changing password");
     } finally {
       setIsLoading(false);
     }
@@ -134,214 +141,319 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Profile Settings
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          <AnimatePresence>
+            {notification && (
+              <motion.div
+                initial={{ opacity: 0, y: -50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+                  notification.type === "success"
+                    ? "bg-green-500 text-white"
+                    : "bg-red-500 text-white"
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  {notification.type === "success" ? (
+                    <CheckCircle size={20} />
+                  ) : (
+                    <AlertCircle size={20} />
+                  )}
+                  <span>{notification.text}</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8"
+          >
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              My Profile
             </h1>
-            <p className="text-gray-600 mt-2">
-              Manage your account details and security settings
+            <p className="text-gray-600">
+              Manage your account settings and preferences
             </p>
-          </div>
+          </motion.div>
 
-          {message.text && (
+          <div className="grid lg:grid-cols-3 gap-8">
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`mb-6 p-4 rounded-lg flex items-center ${
-                message.type === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200"
-                  : "bg-red-50 text-red-800 border border-red-200"
-              }`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="lg:col-span-1"
             >
-              {message.type === "success" ? (
-                <CheckCircle className="h-5 w-5 mr-2" />
-              ) : (
-                <AlertCircle className="h-5 w-5 mr-2" />
-              )}
-              {message.text}
-            </motion.div>
-          )}
+              <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
+                <div className="relative inline-block mb-6">
+                  <div className="relative w-32 h-32 mx-auto">
+                    {profileData.profilePicture ? (
+                      <img
+                        src={profileData.profilePicture}
+                        alt="Profile"
+                        className="w-full h-full rounded-full object-cover border-4 border-blue-400"
+                      />
+                    ) : (
+                      <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold">
+                        {user?.fullName?.charAt(0)?.toUpperCase() || "U"}
+                      </div>
+                    )}
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors shadow-lg"
+                    >
+                      <Camera size={16} />
+                    </button>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Account Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center mb-6">
-                <User className="h-6 w-6 text-blue-600 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Account Information
+                <h2 className="text-xl font-bold text-gray-800 mb-1">
+                  {user?.fullName}
                 </h2>
+                <p className="text-gray-600 mb-4">{user?.district}</p>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-center space-x-2 text-gray-600">
+                    <Shield size={16} />
+                    <span className="capitalize">{user?.role}</span>
+                  </div>
+                  <div className="flex items-center justify-center space-x-2 text-gray-600">
+                    <AtSign size={16} />
+                    <span>{user?.username}</span>
+                  </div>
+                </div>
               </div>
+            </motion.div>
 
-              <form onSubmit={handleUpdateProfile} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="username"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    id="username"
-                    value={user?.username || ""}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Username cannot be changed
-                  </p>
+            <div className="lg:col-span-2 space-y-6">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white rounded-2xl shadow-xl p-8"
+              >
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <User className="text-blue-600" size={24} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-800">
+                    Profile Information
+                  </h3>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="fullName"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    id="fullName"
-                    name="fullName"
-                    value={profileData.fullName}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      htmlFor="fullName"
+                      className="block text-sm font-semibold text-gray-700 mb-3"
+                    >
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="fullName"
+                        name="fullName"
+                        value={profileData.fullName}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12"
+                        placeholder="Enter your full name"
+                      />
+                      <User
+                        className="absolute left-4 top-3.5 text-gray-400"
+                        size={20}
+                      />
+                    </div>
+                  </div>
 
-                <div>
-                  <label
-                    htmlFor="role"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Role
-                  </label>
-                  <input
-                    type="text"
-                    id="role"
-                    value={user?.role?.replace("_", " ") || ""}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed capitalize"
-                  />
-                </div>
-
-                {user?.district && (
                   <div>
                     <label
                       htmlFor="district"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-semibold text-gray-700 mb-3"
                     >
                       District
                     </label>
-                    <input
-                      type="text"
-                      id="district"
-                      value={user.district}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="district"
+                        name="district"
+                        value={profileData.district}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12"
+                        placeholder="Enter your district"
+                      />
+                      <MapPin
+                        className="absolute left-4 top-3.5 text-gray-400"
+                        size={20}
+                      />
+                    </div>
                   </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {isLoading ? "Updating..." : "Update Profile"}
-                </button>
-              </form>
-            </div>
-
-            {/* Change Password */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center mb-6">
-                <Lock className="h-6 w-6 text-blue-600 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Change Password
-                </h2>
-              </div>
-
-              <form onSubmit={handleChangePassword} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="currentPassword"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Current Password
-                  </label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    name="currentPassword"
-                    value={profileData.currentPassword}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="newPassword"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                <div className="mt-8 flex justify-end">
+                  <button
+                    onClick={updateProfile}
+                    disabled={isLoading}
+                    className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
                   >
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    name="newPassword"
-                    value={profileData.newPassword}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                    minLength={6}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Minimum 6 characters
-                  </p>
+                    <Save size={20} />
+                    <span>{isLoading ? "Saving..." : "Save Changes"}</span>
+                  </button>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-white rounded-2xl shadow-xl p-8"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <Lock className="text-red-600" size={24} />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-800">
+                      Security Settings
+                    </h3>
+                  </div>
+
+                  {!showPasswordForm && (
+                    <button
+                      onClick={() => setShowPasswordForm(true)}
+                      className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-6 py-2 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      <Edit3 size={16} />
+                      <span>Change Password</span>
+                    </button>
+                  )}
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Confirm New Password
-                  </label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={profileData.confirmPassword}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                    minLength={6}
-                  />
-                </div>
+                <AnimatePresence>
+                  {showPasswordForm ? (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-6"
+                    >
+                      <div>
+                        <label
+                          htmlFor="currentPassword"
+                          className="block text-sm font-semibold text-gray-700 mb-3"
+                        >
+                          Current Password
+                        </label>
+                        <input
+                          type="password"
+                          id="currentPassword"
+                          name="currentPassword"
+                          value={profileData.currentPassword}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Enter current password"
+                        />
+                      </div>
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Lock className="h-4 w-4 mr-2" />
-                  {isLoading ? "Changing..." : "Change Password"}
-                </button>
-              </form>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <label
+                            htmlFor="newPassword"
+                            className="block text-sm font-semibold text-gray-700 mb-3"
+                          >
+                            New Password
+                          </label>
+                          <input
+                            type="password"
+                            id="newPassword"
+                            name="newPassword"
+                            value={profileData.newPassword}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Enter new password"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="confirmPassword"
+                            className="block text-sm font-semibold text-gray-700 mb-3"
+                          >
+                            Confirm Password
+                          </label>
+                          <input
+                            type="password"
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            value={profileData.confirmPassword}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Confirm new password"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end space-x-4">
+                        <button
+                          onClick={() => {
+                            setShowPasswordForm(false);
+                            setProfileData((prev) => ({
+                              ...prev,
+                              currentPassword: "",
+                              newPassword: "",
+                              confirmPassword: "",
+                            }));
+                          }}
+                          className="flex items-center space-x-2 bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200"
+                        >
+                          <X size={20} />
+                          <span>Cancel</span>
+                        </button>
+                        <button
+                          onClick={changePassword}
+                          disabled={isLoading}
+                          className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                        >
+                          <Lock size={20} />
+                          <span>
+                            {isLoading ? "Changing..." : "Change Password"}
+                          </span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center py-8"
+                    >
+                      <div className="text-gray-500 mb-4">
+                        <Lock size={48} className="mx-auto mb-4 opacity-50" />
+                        <p className="text-lg">Your password is secure</p>
+                        <p className="text-sm">
+                          Click "Change Password" to update your security
+                          credentials
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </Layout>
   );
