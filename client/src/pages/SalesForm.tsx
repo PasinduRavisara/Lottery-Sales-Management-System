@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Save, Trash2, Eye } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Save, Trash2, Eye, AlertTriangle, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { submissionsAPI } from "../lib/api";
 import { useAuth } from "../lib/auth";
@@ -16,11 +16,20 @@ import Layout from "../components/Layout";
 
 const SalesForm = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const editId = searchParams.get("edit");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [customSalesMethod, setCustomSalesMethod] = useState("");
+  
+  // Navigation guard states
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showNavigationWarning, setShowNavigationWarning] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const originalFormDataRef = useRef<any>(null);
+  
   const [formData, setFormData] = useState({
     id: "", // Add id field for updates
     district: user?.district || "",
@@ -58,6 +67,95 @@ const SalesForm = () => {
       loadDraftForEditing(editId);
     }
   }, [editId]);
+
+  // Store original form data for comparison
+  useEffect(() => {
+    if (!originalFormDataRef.current) {
+      originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
+    }
+  }, [formData]);
+
+  // Check for unsaved changes
+  useEffect(() => {
+    if (!originalFormDataRef.current) return;
+    
+    const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalFormDataRef.current);
+    setHasUnsavedChanges(hasChanges);
+  }, [formData]);
+
+  // Navigation guard - intercept navigation attempts
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Intercept Link clicks and other navigation
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (!hasUnsavedChanges) return;
+      
+      const target = e.target as HTMLElement;
+      const link = target.closest('a[href]') as HTMLAnchorElement;
+      
+      if (link && link.href && !link.href.includes(location.pathname)) {
+        e.preventDefault();
+        e.stopPropagation();
+        const href = new URL(link.href).pathname;
+        setPendingNavigation(href);
+        setShowNavigationWarning(true);
+      }
+    };
+
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
+  }, [hasUnsavedChanges, location.pathname]);
+
+  // Handle navigation blocking for React Router navigation
+  const handleNavigation = (path: string) => {
+    if (hasUnsavedChanges) {
+      setPendingNavigation(path);
+      setShowNavigationWarning(true);
+    } else {
+      navigate(path);
+    }
+  };
+
+  // Navigation warning dialog handlers
+  const handleDiscardChanges = () => {
+    setHasUnsavedChanges(false);
+    originalFormDataRef.current = null;
+    setShowNavigationWarning(false);
+    if (pendingNavigation) {
+      navigate(pendingNavigation);
+    }
+  };
+
+  const handleSaveAsDraftAndNavigate = async () => {
+    try {
+      // Use the existing saveDraft function
+      await handleSaveAsDraft();
+      setHasUnsavedChanges(false);
+      originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
+      setShowNavigationWarning(false);
+      if (pendingNavigation) {
+        navigate(pendingNavigation);
+      }
+    } catch (error) {
+      // Error handling is already in handleSaveAsDraft function
+    }
+  };
+
+  const handleCancelNavigation = () => {
+    setShowNavigationWarning(false);
+    setPendingNavigation(null);
+  };
 
   const loadDraftForEditing = async (id: string) => {
     try {
@@ -107,6 +205,12 @@ const SalesForm = () => {
       ) {
         setCustomSalesMethod(submission.salesMethod);
       }
+
+      // Update original data reference for change detection
+      setTimeout(() => {
+        originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
+        setHasUnsavedChanges(false);
+      }, 100);
 
       toast.success("Draft loaded for editing");
     } catch (error) {
@@ -238,6 +342,9 @@ const SalesForm = () => {
           isDraft: false,
         });
         toast.success("Sales submission updated successfully!");
+        // Reset unsaved changes state
+        originalFormDataRef.current = null;
+        setHasUnsavedChanges(false);
       } else {
         // Create new submission
         await submissionsAPI.create({
@@ -247,6 +354,9 @@ const SalesForm = () => {
         toast.success(
           "Sales submission created successfully! You can submit another one."
         );
+        // Reset unsaved changes state
+        originalFormDataRef.current = null;
+        setHasUnsavedChanges(false);
       }
 
       // Reset form for next submission only if it was a new submission
@@ -302,6 +412,9 @@ const SalesForm = () => {
         // Update existing draft
         await submissionsAPI.update(formData.id, draftData);
         toast.success("Draft updated successfully!");
+        // Reset unsaved changes state
+        originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
+        setHasUnsavedChanges(false);
       } else {
         // Create new draft
         const response = await submissionsAPI.create(draftData);
@@ -310,6 +423,9 @@ const SalesForm = () => {
           setFormData((prev) => ({ ...prev, id: response.data.submission.id }));
         }
         toast.success("Draft saved successfully!");
+        // Reset unsaved changes state
+        originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
+        setHasUnsavedChanges(false);
       }
     } catch (error) {
       console.error("Save draft error:", error);
@@ -342,6 +458,9 @@ const SalesForm = () => {
         })),
       });
       setCustomSalesMethod("");
+      // Reset unsaved changes state
+      originalFormDataRef.current = null;
+      setHasUnsavedChanges(false);
       toast.success("Form cleared successfully");
     }
   };
@@ -696,6 +815,64 @@ const SalesForm = () => {
           </motion.form>
         </div>
       )}
+
+      {/* Navigation Warning Modal */}
+      <AnimatePresence>
+        {showNavigationWarning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 max-w-md w-full"
+            >
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                  <AlertTriangle className="text-yellow-600 dark:text-yellow-400" size={24} />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800 dark:text-white">
+                  Unsaved Changes
+                </h3>
+              </div>
+
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                You have unsaved changes in your sales form. What would you like to do?
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={handleSaveAsDraftAndNavigate}
+                  className="w-full flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                >
+                  <Save size={16} />
+                  <span>Save as Draft & Continue</span>
+                </button>
+
+                <button
+                  onClick={handleDiscardChanges}
+                  className="w-full flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                >
+                  <Trash2 size={16} />
+                  <span>Discard Changes</span>
+                </button>
+
+                <button
+                  onClick={handleCancelNavigation}
+                  className="w-full flex items-center justify-center space-x-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                >
+                  <X size={16} />
+                  <span>Cancel</span>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Layout>
   );
 };
