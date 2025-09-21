@@ -105,3 +105,34 @@
     page-break-before: always;
   }
 }
+
+/* Toast notification variables for dark mode support */
+:root {
+  /* Light mode toast colors */
+  --toast-bg: #ffffff;
+  --toast-text: #374151;
+  --toast-border: #e5e7eb;
+  
+  --toast-success-bg: #f0fdf4;
+  --toast-success-text: #166534;
+  --toast-success-border: #bbf7d0;
+  
+  --toast-error-bg: #fef2f2;
+  --toast-error-text: #dc2626;
+  --toast-error-border: #fecaca;
+}
+
+.dark {
+  /* Dark mode toast colors */
+  --toast-bg: #374151;
+  --toast-text: #f9fafb;
+  --toast-border: #4b5563;
+  
+  --toast-success-bg: #064e3b;
+  --toast-success-text: #6ee7b7;
+  --toast-success-border: #047857;
+  
+  --toast-error-bg: #7f1d1d;
+  --toast-error-text: #fca5a5;
+  --toast-error-border: #dc2626;
+}
