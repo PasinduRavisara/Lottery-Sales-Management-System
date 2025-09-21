@@ -359,7 +359,7 @@ const SalesForm = () => {
         <div className="max-w-6xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {formData.id
                   ? "Edit Sales Submission"
                   : "Daily Sales Submission"}
@@ -380,7 +380,7 @@ const SalesForm = () => {
           >
             {/* General Information */}
             <div className="card">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                 General Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

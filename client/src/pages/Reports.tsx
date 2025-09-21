@@ -212,8 +212,10 @@ export default function Reports() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Reports
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">
               {user?.role === "TERRITORY_MANAGER"
                 ? "View and analyze all sales submissions"
                 : "View and manage your sales submissions"}
@@ -223,7 +225,7 @@ export default function Reports() {
 
         <div className="card">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               {user?.role === "TERRITORY_MANAGER"
                 ? "All Submissions"
                 : "My Submissions"}

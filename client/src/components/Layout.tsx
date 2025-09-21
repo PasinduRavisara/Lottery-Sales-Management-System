@@ -41,7 +41,7 @@ export default function Layout({ children }: LayoutProps) {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Mobile sidebar */}
       <div
         className={`fixed inset-0 z-50 lg:hidden ${
@@ -89,8 +89,8 @@ export default function Layout({ children }: LayoutProps) {
               to="/profile"
               className={`flex items-center space-x-3 mb-4 p-2 rounded-lg transition-colors duration-200 ${
                 isActive("/profile")
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  ? "bg-blue-100 text-blue-700 dark:bg-blue-600 dark:text-white"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
               }`}
               onClick={() => setSidebarOpen(false)}
             >
@@ -101,22 +101,24 @@ export default function Layout({ children }: LayoutProps) {
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
-                <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 text-sm font-medium">
+                <div className="h-8 w-8 bg-blue-100 dark:bg-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 dark:text-white text-sm font-medium">
                     {getUserInitials(user?.fullName)}
                   </span>
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium">{user?.fullName}</p>
-                <p className="text-xs capitalize">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {user?.fullName}
+                </p>
+                <p className="text-xs capitalize text-gray-600 dark:text-gray-300">
                   {user?.role?.toLowerCase().replace("_", " ")}
                 </p>
               </div>
             </Link>
             <button
               onClick={handleLogout}
-              className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+              className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-100 rounded-lg hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white transition-colors duration-200"
             >
               <LogOut className="h-4 w-4 mr-3" />
               Sign out
@@ -152,13 +154,13 @@ export default function Layout({ children }: LayoutProps) {
               );
             })}
           </nav>
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-gray-200 dark:border-gray-600 p-4">
             <Link
               to="/profile"
               className={`flex items-center space-x-3 mb-4 p-2 rounded-lg transition-colors duration-200 ${
                 isActive("/profile")
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  ? "bg-blue-100 text-blue-700 dark:bg-blue-600 dark:text-white"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
               }`}
             >
               {getProfilePictureUrl(user?.profilePicture) ? (
@@ -168,22 +170,24 @@ export default function Layout({ children }: LayoutProps) {
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
-                <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 text-sm font-medium">
+                <div className="h-8 w-8 bg-blue-100 dark:bg-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 dark:text-white text-sm font-medium">
                     {getUserInitials(user?.fullName)}
                   </span>
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium">{user?.fullName}</p>
-                <p className="text-xs capitalize">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {user?.fullName}
+                </p>
+                <p className="text-xs capitalize text-gray-600 dark:text-gray-300">
                   {user?.role?.toLowerCase().replace("_", " ")}
                 </p>
               </div>
             </Link>
             <button
               onClick={handleLogout}
-              className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+              className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-100 rounded-lg hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white transition-colors duration-200"
             >
               <LogOut className="h-4 w-4 mr-3" />
               Sign out

@@ -184,7 +184,7 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
         <div className="max-w-4xl mx-auto">
           <AnimatePresence>
             {notification && (
@@ -192,10 +192,10 @@ export default function Profile() {
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -50 }}
-                className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+                className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border ${
                   notification.type === "success"
-                    ? "bg-green-500 text-white"
-                    : "bg-red-500 text-white"
+                    ? "bg-green-50 dark:bg-green-900 text-green-800 dark:text-green-100 border-green-200 dark:border-green-800"
+                    : "bg-red-50 dark:bg-red-900 text-red-800 dark:text-red-100 border-red-200 dark:border-red-800"
                 }`}
               >
                 <div className="flex items-center space-x-2">
@@ -215,10 +215,10 @@ export default function Profile() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8"
           >
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
               My Profile
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               Manage your account settings and preferences
             </p>
           </motion.div>
@@ -266,17 +266,19 @@ export default function Profile() {
                   </div>
                 </div>
 
-                <h2 className="text-xl font-bold text-gray-800 mb-1">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-1">
                   {user?.fullName}
                 </h2>
-                <p className="text-gray-600 mb-4">{user?.district}</p>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  {user?.district}
+                </p>
 
                 <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-center space-x-2 text-gray-600">
+                  <div className="flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-300">
                     <Shield size={16} />
                     <span className="capitalize">{user?.role}</span>
                   </div>
-                  <div className="flex items-center justify-center space-x-2 text-gray-600">
+                  <div className="flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-300">
                     <AtSign size={16} />
                     <span>{user?.username}</span>
                   </div>
@@ -307,7 +309,7 @@ export default function Profile() {
                   <div>
                     <label
                       htmlFor="fullName"
-                      className="block text-sm font-semibold text-gray-700 mb-3"
+                      className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3"
                     >
                       Full Name
                     </label>
@@ -331,7 +333,7 @@ export default function Profile() {
                   <div>
                     <label
                       htmlFor="district"
-                      className="block text-sm font-semibold text-gray-700 mb-3"
+                      className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3"
                     >
                       District
                     </label>
@@ -413,7 +415,7 @@ export default function Profile() {
                       <div>
                         <label
                           htmlFor="currentPassword"
-                          className="block text-sm font-semibold text-gray-700 mb-3"
+                          className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3"
                         >
                           Current Password
                         </label>
@@ -432,7 +434,7 @@ export default function Profile() {
                         <div>
                           <label
                             htmlFor="newPassword"
-                            className="block text-sm font-semibold text-gray-700 mb-3"
+                            className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3"
                           >
                             New Password
                           </label>
@@ -450,7 +452,7 @@ export default function Profile() {
                         <div>
                           <label
                             htmlFor="confirmPassword"
-                            className="block text-sm font-semibold text-gray-700 mb-3"
+                            className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3"
                           >
                             Confirm Password
                           </label>
