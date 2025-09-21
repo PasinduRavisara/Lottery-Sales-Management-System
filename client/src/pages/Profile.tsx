@@ -231,7 +231,7 @@ export default function Profile() {
               transition={{ delay: 0.1 }}
               className="w-full max-w-md"
             >
-              <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 text-center">
                 <div className="relative inline-block mb-6">
                   <div
                     className="relative w-32 h-32 mx-auto cursor-pointer group"
@@ -294,13 +294,13 @@ export default function Profile() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="bg-white rounded-2xl shadow-xl p-8"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
               >
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <User className="text-blue-600" size={24} />
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <User className="text-blue-600 dark:text-blue-400" size={24} />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800">
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
                     Profile Information
                   </h3>
                 </div>
@@ -320,11 +320,11 @@ export default function Profile() {
                         name="fullName"
                         value={profileData.fullName}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="Enter your full name"
                       />
                       <User
-                        className="absolute left-4 top-3.5 text-gray-400"
+                        className="absolute left-4 top-3.5 text-gray-400 dark:text-gray-500"
                         size={20}
                       />
                     </div>
@@ -343,7 +343,7 @@ export default function Profile() {
                         name="district"
                         value={profileData.district}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12 pr-10 appearance-none bg-white"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12 pr-10 appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       >
                         <option value="">Select a district</option>
                         {SRI_LANKAN_DISTRICTS.map((district) => (
@@ -353,11 +353,11 @@ export default function Profile() {
                         ))}
                       </select>
                       <MapPin
-                        className="absolute left-4 top-3.5 text-gray-400"
+                        className="absolute left-4 top-3.5 text-gray-400 dark:text-gray-500"
                         size={20}
                       />
                       <ChevronDown
-                        className="absolute right-4 top-3.5 text-gray-400 pointer-events-none"
+                        className="absolute right-4 top-3.5 text-gray-400 dark:text-gray-500 pointer-events-none"
                         size={20}
                       />
                     </div>
@@ -380,14 +380,14 @@ export default function Profile() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="bg-white rounded-2xl shadow-xl p-8"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
               >
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-red-100 rounded-lg">
-                      <Lock className="text-red-600" size={24} />
+                    <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                      <Lock className="text-red-600 dark:text-red-400" size={24} />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800">
+                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
                       Security Settings
                     </h3>
                   </div>
@@ -425,7 +425,7 @@ export default function Profile() {
                           name="currentPassword"
                           value={profileData.currentPassword}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           placeholder="Enter current password"
                         />
                       </div>
@@ -444,7 +444,7 @@ export default function Profile() {
                             name="newPassword"
                             value={profileData.newPassword}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             placeholder="Enter new password"
                           />
                         </div>
@@ -462,7 +462,7 @@ export default function Profile() {
                             name="confirmPassword"
                             value={profileData.confirmPassword}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             placeholder="Confirm new password"
                           />
                         </div>
@@ -502,7 +502,7 @@ export default function Profile() {
                       animate={{ opacity: 1 }}
                       className="text-center py-8"
                     >
-                      <div className="text-gray-500 mb-4">
+                      <div className="text-gray-500 dark:text-gray-400 mb-4">
                         <Lock size={48} className="mx-auto mb-4 opacity-50" />
                         <p className="text-lg">Your password is secure</p>
                         <p className="text-sm">
