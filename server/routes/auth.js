@@ -451,4 +451,65 @@ router.post(
   }
 );
 
+// Remove profile picture endpoint
+router.delete(
+  "/remove-profile-picture",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      // Get current user to find the profile picture file
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { profilePicture: true },
+      });
+
+      // If user has a profile picture, try to delete the file
+      if (currentUser?.profilePicture) {
+        try {
+          const filename = path.basename(currentUser.profilePicture);
+          const filepath = path.join(
+            __dirname,
+            "../../client/public/uploads/profile-pictures",
+            filename
+          );
+
+          // Check if file exists and delete it
+          await fs.access(filepath);
+          await fs.unlink(filepath);
+        } catch (fileError) {
+          // File might not exist, that's okay - just log it
+          console.log(
+            "Profile picture file not found or already deleted:",
+            fileError.message
+          );
+        }
+      }
+
+      // Remove profile picture from database
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: { profilePicture: null },
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
+          role: true,
+          district: true,
+          profilePicture: true,
+        },
+      });
+
+      res.json({
+        message: "Profile picture removed successfully",
+        user: updatedUser,
+      });
+    } catch (error) {
+      console.error("Remove profile picture error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
+
 module.exports = router;

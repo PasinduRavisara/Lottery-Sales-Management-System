@@ -17,6 +17,7 @@ import {
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import ProfilePictureUpload from "../components/ProfilePictureUpload";
+import ProfilePictureViewer from "../components/ProfilePictureViewer";
 import { getProfilePictureUrl, getUserInitials } from "../lib/utils";
 
 // Sri Lankan Districts
@@ -60,6 +61,9 @@ export default function Profile() {
   });
 
   const [showProfilePictureUpload, setShowProfilePictureUpload] =
+    useState(false);
+
+  const [showProfilePictureViewer, setShowProfilePictureViewer] =
     useState(false);
 
   // Update form data when user data changes (e.g., after login)
@@ -229,20 +233,32 @@ export default function Profile() {
             >
               <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
                 <div className="relative inline-block mb-6">
-                  <div className="relative w-32 h-32 mx-auto">
+                  <div
+                    className="relative w-32 h-32 mx-auto cursor-pointer group"
+                    onClick={() => setShowProfilePictureViewer(true)}
+                  >
                     {getProfilePictureUrl(user?.profilePicture) ? (
                       <img
                         src={getProfilePictureUrl(user?.profilePicture)!}
                         alt="Profile"
-                        className="w-full h-full rounded-full object-cover border-4 border-blue-400"
+                        className="w-full h-full rounded-full object-cover border-4 border-blue-400 group-hover:border-blue-500 transition-colors"
                       />
                     ) : (
-                      <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold">
+                      <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold group-hover:from-blue-600 group-hover:to-purple-700 transition-colors">
                         {getUserInitials(user?.fullName)}
                       </div>
                     )}
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 rounded-full bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+                      <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                        View
+                      </span>
+                    </div>
                     <button
-                      onClick={() => setShowProfilePictureUpload(true)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowProfilePictureUpload(true);
+                      }}
                       className="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors shadow-lg"
                     >
                       <Camera size={16} />
@@ -505,6 +521,16 @@ export default function Profile() {
         isOpen={showProfilePictureUpload}
         onClose={() => setShowProfilePictureUpload(false)}
         onUploadSuccess={handleProfilePictureUpload}
+      />
+
+      <ProfilePictureViewer
+        isOpen={showProfilePictureViewer}
+        onClose={() => setShowProfilePictureViewer(false)}
+        onEdit={() => {
+          setShowProfilePictureViewer(false);
+          setShowProfilePictureUpload(true);
+        }}
+        user={user}
       />
     </Layout>
   );
