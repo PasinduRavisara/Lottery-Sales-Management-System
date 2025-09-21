@@ -4,15 +4,20 @@ import { X, Edit, Trash2 } from "lucide-react";
 import { getProfilePictureUrl, getUserInitials } from "../lib/utils";
 import toast from "react-hot-toast";
 
+interface User {
+  id: string;
+  username: string;
+  fullName: string;
+  role: "TERRITORY_MANAGER" | "SALES_PROMOTION_ASSISTANT";
+  district?: string;
+  profilePicture?: string;
+}
+
 interface ProfilePictureViewerProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: () => void;
-  user: {
-    id: string;
-    fullName: string | null;
-    profilePicture: string | null | undefined;
-  } | null;
+  user: User | null;
 }
 
 const ProfilePictureViewer: React.FC<ProfilePictureViewerProps> = ({
