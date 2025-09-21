@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
+import ProfilePictureUpload from "../components/ProfilePictureUpload";
 
 // Sri Lankan Districts
 const SRI_LANKAN_DISTRICTS = [
@@ -52,11 +53,13 @@ export default function Profile() {
   const [profileData, setProfileData] = useState({
     fullName: user?.fullName || "",
     district: user?.district || "",
-    profilePicture: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+
+  const [showProfilePictureUpload, setShowProfilePictureUpload] =
+    useState(false);
 
   // Update form data when user data changes (e.g., after login)
   useEffect(() => {
@@ -75,7 +78,6 @@ export default function Profile() {
     type: "success" | "error";
     text: string;
   } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showNotification = (type: "success" | "error", text: string) => {
     setNotification({ type, text });
@@ -89,18 +91,12 @@ export default function Profile() {
     setProfileData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setProfileData((prev) => ({
-          ...prev,
-          profilePicture: (event.target?.result as string) || "",
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleProfilePictureUpload = (newPictureUrl: string) => {
+    // Update the user context with the new profile picture
+    updateUser({
+      ...user!,
+      profilePicture: newPictureUrl,
+    });
   };
 
   const updateProfile = async () => {
@@ -116,7 +112,6 @@ export default function Profile() {
         body: JSON.stringify({
           fullName: profileData.fullName,
           district: profileData.district,
-          profilePicture: profileData.profilePicture,
         }),
       });
 
@@ -234,9 +229,9 @@ export default function Profile() {
               <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
                 <div className="relative inline-block mb-6">
                   <div className="relative w-32 h-32 mx-auto">
-                    {profileData.profilePicture ? (
+                    {user?.profilePicture ? (
                       <img
-                        src={profileData.profilePicture}
+                        src={user.profilePicture}
                         alt="Profile"
                         className="w-full h-full rounded-full object-cover border-4 border-blue-400"
                       />
@@ -246,19 +241,12 @@ export default function Profile() {
                       </div>
                     )}
                     <button
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => setShowProfilePictureUpload(true)}
                       className="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors shadow-lg"
                     >
                       <Camera size={16} />
                     </button>
                   </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-800 mb-1">
@@ -511,6 +499,12 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      <ProfilePictureUpload
+        isOpen={showProfilePictureUpload}
+        onClose={() => setShowProfilePictureUpload(false)}
+        onUploadSuccess={handleProfilePictureUpload}
+      />
     </Layout>
   );
 }

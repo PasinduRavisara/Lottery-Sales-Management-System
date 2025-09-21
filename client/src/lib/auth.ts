@@ -7,6 +7,7 @@ interface User {
   fullName: string;
   role: "TERRITORY_MANAGER" | "SALES_PROMOTION_ASSISTANT";
   district?: string;
+  profilePicture?: string;
 }
 
 interface AuthState {

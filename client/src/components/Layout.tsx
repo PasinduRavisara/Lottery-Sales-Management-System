@@ -91,9 +91,17 @@ export default function Layout({ children }: LayoutProps) {
               }`}
               onClick={() => setSidebarOpen(false)}
             >
-              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <User className="h-4 w-4 text-blue-600" />
-              </div>
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt={user.fullName}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-blue-600" />
+                </div>
+              )}
               <div>
                 <p className="text-sm font-medium">{user?.fullName}</p>
                 <p className="text-xs capitalize">
@@ -146,9 +154,17 @@ export default function Layout({ children }: LayoutProps) {
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`}
             >
-              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <User className="h-4 w-4 text-blue-600" />
-              </div>
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt={user.fullName}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-blue-600" />
+                </div>
+              )}
               <div>
                 <p className="text-sm font-medium">{user?.fullName}</p>
                 <p className="text-xs capitalize">
@@ -183,9 +199,17 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center gap-x-4 lg:gap-x-6">
               <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" />
               <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-blue-600" />
-                </div>
+                {user?.profilePicture ? (
+                  <img
+                    src={user.profilePicture}
+                    alt={user.fullName}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-blue-600" />
+                  </div>
+                )}
                 <div className="hidden lg:block">
                   <p className="text-sm font-medium text-gray-900">
                     {user?.fullName}

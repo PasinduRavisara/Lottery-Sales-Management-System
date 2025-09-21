@@ -4,9 +4,39 @@ const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require("@prisma/client");
 const { authenticateToken } = require("../middleware/auth");
+const multer = require("multer");
+const sharp = require("sharp");
+const path = require("path");
+const fs = require("fs").promises;
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Configure multer for profile picture uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed!"), false);
+    }
+  },
+});
+
+// Ensure uploads directory exists
+const ensureUploadsDirectory = async () => {
+  const uploadsDir = path.join(__dirname, "../uploads/profile-pictures");
+  try {
+    await fs.access(uploadsDir);
+  } catch (error) {
+    await fs.mkdir(uploadsDir, { recursive: true });
+  }
+};
 
 // Login endpoint
 router.post(
@@ -60,6 +90,7 @@ router.post(
           fullName: user.fullName,
           role: user.role,
           district: user.district,
+          profilePicture: user.profilePicture,
         },
       });
     } catch (error) {
@@ -293,6 +324,7 @@ router.put("/profile", authenticateToken, async (req, res) => {
         fullName: true,
         role: true,
         district: true,
+        profilePicture: true,
       },
     });
 
@@ -357,5 +389,63 @@ router.put("/change-password", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// Upload and resize profile picture endpoint
+router.post(
+  "/upload-profile-picture",
+  authenticateToken,
+  upload.single("profilePicture"),
+  async (req, res) => {
+    try {
+      await ensureUploadsDirectory();
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const { width = 300, height = 300 } = req.body;
+      const userId = req.user.id;
+      const filename = `${userId}-${Date.now()}.jpg`;
+      const filepath = path.join(
+        __dirname,
+        "../uploads/profile-pictures",
+        filename
+      );
+
+      // Process and resize the image
+      await sharp(req.file.buffer)
+        .resize(parseInt(width), parseInt(height), {
+          fit: "cover",
+          position: "center",
+        })
+        .jpeg({ quality: 90 })
+        .toFile(filepath);
+
+      // Update user's profile picture in database
+      const profilePictureUrl = `/uploads/profile-pictures/${filename}`;
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: { profilePicture: profilePictureUrl },
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
+          role: true,
+          district: true,
+          profilePicture: true,
+        },
+      });
+
+      res.json({
+        message: "Profile picture uploaded successfully",
+        user: updatedUser,
+        profilePictureUrl: profilePictureUrl,
+      });
+    } catch (error) {
+      console.error("Upload profile picture error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
 
 module.exports = router;
