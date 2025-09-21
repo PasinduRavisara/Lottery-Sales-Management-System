@@ -180,12 +180,13 @@ export default function Profile() {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          {/* Profile Picture Card - Centered */}
+          <div className="flex justify-center mb-8">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="lg:col-span-1"
+              className="w-full max-w-md"
             >
               <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
                 <div className="relative inline-block mb-6">
@@ -234,11 +235,14 @@ export default function Profile() {
                 </div>
               </div>
             </motion.div>
+          </div>
 
-            <div className="lg:col-span-2 space-y-6">
+          {/* Profile Information and Security Cards - Centered and Stacked */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-4xl space-y-6">
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 className="bg-white rounded-2xl shadow-xl p-8"
               >
@@ -314,8 +318,8 @@ export default function Profile() {
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
                 className="bg-white rounded-2xl shadow-xl p-8"
               >
