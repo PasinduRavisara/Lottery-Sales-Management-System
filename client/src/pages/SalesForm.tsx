@@ -352,7 +352,9 @@ const SalesForm = () => {
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
             <div className="loading-spinner mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-300">Loading draft for editing...</p>
+            <p className="text-gray-600 dark:text-gray-300">
+              Loading draft for editing...
+            </p>
           </div>
         </div>
       ) : (

@@ -377,7 +377,9 @@ export default function UserManagement() {
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="loading-spinner mr-4"></div>
-              <p className="text-gray-600 dark:text-gray-300">Loading users...</p>
+              <p className="text-gray-600 dark:text-gray-300">
+                Loading users...
+              </p>
             </div>
           ) : users.length > 0 ? (
             <div className="overflow-x-auto">
