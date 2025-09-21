@@ -298,7 +298,10 @@ export default function Profile() {
               >
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                    <User className="text-blue-600 dark:text-blue-400" size={24} />
+                    <User
+                      className="text-blue-600 dark:text-blue-400"
+                      size={24}
+                    />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
                     Profile Information
@@ -385,7 +388,10 @@ export default function Profile() {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
                     <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
-                      <Lock className="text-red-600 dark:text-red-400" size={24} />
+                      <Lock
+                        className="text-red-600 dark:text-red-400"
+                        size={24}
+                      />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
                       Security Settings

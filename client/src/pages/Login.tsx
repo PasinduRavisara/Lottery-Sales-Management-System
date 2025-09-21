@@ -153,11 +153,11 @@ export default function Login() {
           </div>
 
           <div className="text-center mt-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-blue-800 mb-2">
+            <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                 Account Information
               </h3>
-              <div className="text-xs text-blue-700 space-y-1">
+              <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
                 <p>
                   <strong>Zone Managers:</strong> Use your full name as username
                 </p>
@@ -168,8 +168,8 @@ export default function Login() {
                 <p>
                   <strong>Password format:</strong> firstname123
                 </p>
-                <div className="mt-3 pt-2 border-t border-blue-200">
-                  <p className="text-blue-600">
+                <div className="mt-3 pt-2 border-t border-blue-200 dark:border-blue-600">
+                  <p className="text-blue-600 dark:text-blue-300">
                     <strong>Examples:</strong>
                   </p>
                   <p>Username: "John Smith" → Password: "john123"</p>
