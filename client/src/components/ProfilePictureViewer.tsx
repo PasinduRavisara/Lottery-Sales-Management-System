@@ -76,16 +76,18 @@ const ProfilePictureViewer: React.FC<ProfilePictureViewerProps> = ({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 max-w-md w-full"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800">Profile Picture</h2>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+              Profile Picture
+            </h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
 
@@ -95,10 +97,10 @@ const ProfilePictureViewer: React.FC<ProfilePictureViewerProps> = ({
               <img
                 src={profilePictureUrl}
                 alt="Profile"
-                className="w-64 h-64 rounded-full object-cover border-4 border-gray-200"
+                className="w-64 h-64 rounded-full object-cover border-4 border-gray-200 dark:border-gray-600"
               />
             ) : (
-              <div className="w-64 h-64 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-gray-200">
+              <div className="w-64 h-64 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-gray-200 dark:border-gray-600">
                 <span className="text-6xl font-bold text-white">
                   {userInitials}
                 </span>
@@ -108,7 +110,7 @@ const ProfilePictureViewer: React.FC<ProfilePictureViewerProps> = ({
 
           {/* User Name */}
           <div className="text-center mb-6">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
               {user.fullName || "User"}
             </h3>
           </div>
@@ -137,7 +139,7 @@ const ProfilePictureViewer: React.FC<ProfilePictureViewerProps> = ({
 
           {/* Info Text */}
           {!profilePictureUrl && (
-            <p className="text-center text-gray-500 text-sm mt-4">
+            <p className="text-center text-gray-500 dark:text-gray-400 text-sm mt-4">
               No profile picture set. Click Edit to upload one.
             </p>
           )}

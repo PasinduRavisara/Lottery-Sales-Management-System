@@ -173,17 +173,17 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl shadow-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
               Upload Profile Picture
             </h2>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
-              <X size={20} />
+              <X size={20} className="text-gray-600 dark:text-gray-400" />
             </button>
           </div>
 
@@ -198,14 +198,17 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors flex flex-col items-center space-y-4"
+                className="w-full p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 transition-colors flex flex-col items-center space-y-4 bg-gray-50 dark:bg-gray-700"
               >
-                <Camera size={48} className="text-gray-400" />
+                <Camera
+                  size={48}
+                  className="text-gray-400 dark:text-gray-500"
+                />
                 <div className="text-center">
-                  <p className="text-lg font-medium text-gray-600">
+                  <p className="text-lg font-medium text-gray-600 dark:text-gray-300">
                     Choose a photo
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     Upload a new profile picture
                   </p>
                 </div>
@@ -216,12 +219,12 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
           {imgSrc && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-800">
+                <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                   Crop your image
                 </h3>
                 <button
                   onClick={handleReset}
-                  className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="flex items-center space-x-2 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   <RotateCcw size={16} />
                   <span>Reset</span>
@@ -229,12 +232,14 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Output Size
                 </label>
                 <div className="flex space-x-4">
                   <div>
-                    <label className="block text-xs text-gray-500">Width</label>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400">
+                      Width
+                    </label>
                     <input
                       type="number"
                       value={cropSize.width}
@@ -244,13 +249,13 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
                           width: parseInt(e.target.value) || 300,
                         }))
                       }
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                      className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       min="50"
                       max="800"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500">
+                    <label className="block text-xs text-gray-500 dark:text-gray-400">
                       Height
                     </label>
                     <input
@@ -262,14 +267,14 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
                           height: parseInt(e.target.value) || 300,
                         }))
                       }
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                      className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       min="50"
                       max="800"
                     />
                   </div>
                   <button
                     onClick={() => setCropSize({ width: 300, height: 300 })}
-                    className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                    className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded transition-colors text-gray-700 dark:text-gray-300"
                   >
                     Square
                   </button>
@@ -297,7 +302,7 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
               <div className="flex space-x-3 pt-4">
                 <button
                   onClick={handleClose}
-                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
