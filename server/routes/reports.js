@@ -39,7 +39,7 @@ router.get("/summary", authenticateToken, async (req, res) => {
     const submissions = await prisma.salesSubmission.findMany({
       where: whereClause,
       include: {
-        user: { select: { id: true, username: true } },
+        user: { select: { id: true, username: true, fullName: true } },
         dailySales: true,
       },
       orderBy: { createdAt: "desc" },
@@ -158,7 +158,7 @@ router.get("/export", authenticateToken, async (req, res) => {
     const submissions = await prisma.salesSubmission.findMany({
       where: whereClause,
       include: {
-        user: { select: { id: true, username: true } },
+        user: { select: { id: true, username: true, fullName: true } },
         dailySales: true,
       },
       orderBy: { createdAt: "desc" },
@@ -193,7 +193,7 @@ router.get("/export", authenticateToken, async (req, res) => {
     submissions.forEach((submission) => {
       // Create a single row per submission with all brands as sub-columns
       const rowData = {
-        "Submitted By": submission.user.username,
+        "Submitted By": submission.user.fullName || submission.user.username,
         District: submission.district,
         City: submission.city,
         "Dealer Name": submission.dealerName,
@@ -719,7 +719,7 @@ router.get("/dashboard", authenticateToken, async (req, res) => {
     const recentSubmissions = await prisma.salesSubmission.findMany({
       where: whereClause,
       include: {
-        user: { select: { id: true, username: true } },
+        user: { select: { id: true, username: true, fullName: true } },
         dailySales: true,
       },
       orderBy: { createdAt: "desc" },

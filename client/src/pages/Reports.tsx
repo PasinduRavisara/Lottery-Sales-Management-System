@@ -16,6 +16,7 @@ interface Submission {
   user: {
     id: string;
     username: string;
+    fullName?: string;
   };
 }
 
@@ -92,8 +93,8 @@ export default function Reports() {
           bValue = new Date(b.createdAt);
           break;
         case 'submittedBy':
-          aValue = a.user.username.toLowerCase();
-          bValue = b.user.username.toLowerCase();
+          aValue = (a.user.fullName || a.user.username).toLowerCase();
+          bValue = (b.user.fullName || b.user.username).toLowerCase();
           break;
         default:
           return 0;
@@ -317,7 +318,7 @@ export default function Reports() {
                       </td>
                       {user?.role === "TERRITORY_MANAGER" && (
                         <td className="table-cell text-center">
-                          {submission.user.username}
+                          {submission.user.fullName || submission.user.username}
                         </td>
                       )}
                       <td className="table-cell text-center">
