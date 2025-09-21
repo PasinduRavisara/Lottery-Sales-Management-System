@@ -17,6 +17,7 @@ import {
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import ProfilePictureUpload from "../components/ProfilePictureUpload";
+import { getProfilePictureUrl, getUserInitials } from "../lib/utils";
 
 // Sri Lankan Districts
 const SRI_LANKAN_DISTRICTS = [
@@ -229,15 +230,15 @@ export default function Profile() {
               <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
                 <div className="relative inline-block mb-6">
                   <div className="relative w-32 h-32 mx-auto">
-                    {user?.profilePicture ? (
+                    {getProfilePictureUrl(user?.profilePicture) ? (
                       <img
-                        src={user.profilePicture}
+                        src={getProfilePictureUrl(user?.profilePicture)!}
                         alt="Profile"
                         className="w-full h-full rounded-full object-cover border-4 border-blue-400"
                       />
                     ) : (
                       <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold">
-                        {user?.fullName?.charAt(0)?.toUpperCase() || "U"}
+                        {getUserInitials(user?.fullName)}
                       </div>
                     )}
                     <button

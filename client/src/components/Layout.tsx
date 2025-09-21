@@ -8,10 +8,10 @@ import {
   FileText,
   BarChart3,
   LogOut,
-  User,
   Users,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
+import { getProfilePictureUrl, getUserInitials } from "../lib/utils";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -91,15 +91,17 @@ export default function Layout({ children }: LayoutProps) {
               }`}
               onClick={() => setSidebarOpen(false)}
             >
-              {user?.profilePicture ? (
+              {getProfilePictureUrl(user?.profilePicture) ? (
                 <img
-                  src={user.profilePicture}
-                  alt={user.fullName}
+                  src={getProfilePictureUrl(user?.profilePicture)!}
+                  alt={user?.fullName || "Profile"}
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
                 <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-blue-600" />
+                  <span className="text-blue-600 text-sm font-medium">
+                    {getUserInitials(user?.fullName)}
+                  </span>
                 </div>
               )}
               <div>
@@ -154,15 +156,17 @@ export default function Layout({ children }: LayoutProps) {
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`}
             >
-              {user?.profilePicture ? (
+              {getProfilePictureUrl(user?.profilePicture) ? (
                 <img
-                  src={user.profilePicture}
-                  alt={user.fullName}
+                  src={getProfilePictureUrl(user?.profilePicture)!}
+                  alt={user?.fullName || "Profile"}
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
                 <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-blue-600" />
+                  <span className="text-blue-600 text-sm font-medium">
+                    {getUserInitials(user?.fullName)}
+                  </span>
                 </div>
               )}
               <div>
@@ -199,15 +203,17 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center gap-x-4 lg:gap-x-6">
               <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" />
               <div className="flex items-center space-x-2">
-                {user?.profilePicture ? (
+                {getProfilePictureUrl(user?.profilePicture) ? (
                   <img
-                    src={user.profilePicture}
-                    alt={user.fullName}
+                    src={getProfilePictureUrl(user?.profilePicture)!}
+                    alt={user?.fullName || "Profile"}
                     className="h-8 w-8 rounded-full object-cover"
                   />
                 ) : (
                   <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4 text-blue-600" />
+                    <span className="text-blue-600 text-sm font-medium">
+                      {getUserInitials(user?.fullName)}
+                    </span>
                   </div>
                 )}
                 <div className="hidden lg:block">

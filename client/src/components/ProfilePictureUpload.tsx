@@ -127,6 +127,10 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
         toast.success("Profile picture updated successfully!");
         onUploadSuccess(data.profilePictureUrl);
         handleClose();
+        // Refresh the page to update all profile picture displays
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000); // Wait 1 second to show the success toast
       } else {
         toast.error(data.message || "Failed to upload profile picture");
       }

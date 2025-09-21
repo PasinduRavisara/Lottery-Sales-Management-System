@@ -28,9 +28,12 @@ const upload = multer({
   },
 });
 
-// Ensure uploads directory exists
+// Ensure uploads directory exists in client public folder
 const ensureUploadsDirectory = async () => {
-  const uploadsDir = path.join(__dirname, "../uploads/profile-pictures");
+  const uploadsDir = path.join(
+    __dirname,
+    "../../client/public/uploads/profile-pictures"
+  );
   try {
     await fs.access(uploadsDir);
   } catch (error) {
@@ -408,7 +411,7 @@ router.post(
       const filename = `${userId}-${Date.now()}.jpg`;
       const filepath = path.join(
         __dirname,
-        "../uploads/profile-pictures",
+        "../../client/public/uploads/profile-pictures",
         filename
       );
 
