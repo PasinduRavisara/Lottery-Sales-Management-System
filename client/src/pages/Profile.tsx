@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -12,9 +12,39 @@ import {
   Shield,
   AtSign,
   X,
+  ChevronDown,
 } from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
+
+// Sri Lankan Districts
+const SRI_LANKAN_DISTRICTS = [
+  "Ampara",
+  "Anuradhapura",
+  "Badulla",
+  "Batticaloa",
+  "Colombo",
+  "Galle",
+  "Gampaha",
+  "Hambantota",
+  "Jaffna",
+  "Kalutara",
+  "Kandy",
+  "Kegalle",
+  "Kilinochchi",
+  "Kurunegala",
+  "Mannar",
+  "Matale",
+  "Matara",
+  "Monaragala",
+  "Mullaitivu",
+  "Nuwara Eliya",
+  "Polonnaruwa",
+  "Puttalam",
+  "Ratnapura",
+  "Trincomalee",
+  "Vavuniya",
+];
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -27,6 +57,17 @@ export default function Profile() {
     newPassword: "",
     confirmPassword: "",
   });
+
+  // Update form data when user data changes (e.g., after login)
+  useEffect(() => {
+    if (user) {
+      setProfileData((prev) => ({
+        ...prev,
+        fullName: user.fullName || "",
+        district: user.district || "",
+      }));
+    }
+  }, [user]);
 
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +82,9 @@ export default function Profile() {
     setTimeout(() => setNotification(null), 4000);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setProfileData((prev) => ({ ...prev, [name]: value }));
   };
@@ -288,17 +331,26 @@ export default function Profile() {
                       District
                     </label>
                     <div className="relative">
-                      <input
-                        type="text"
+                      <select
                         id="district"
                         name="district"
                         value={profileData.district}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12"
-                        placeholder="Enter your district"
-                      />
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12 pr-10 appearance-none bg-white"
+                      >
+                        <option value="">Select a district</option>
+                        {SRI_LANKAN_DISTRICTS.map((district) => (
+                          <option key={district} value={district}>
+                            {district}
+                          </option>
+                        ))}
+                      </select>
                       <MapPin
                         className="absolute left-4 top-3.5 text-gray-400"
+                        size={20}
+                      />
+                      <ChevronDown
+                        className="absolute right-4 top-3.5 text-gray-400 pointer-events-none"
                         size={20}
                       />
                     </div>
