@@ -21,6 +21,10 @@ interface DashboardStats {
   thisWeekSubmissions: number;
   thisMonthSubmissions: number;
   draftSubmissions: number;
+  totalSubmissionsChange: number;
+  thisWeekChange: number;
+  thisMonthChange: number;
+  draftsChange: number;
 }
 
 interface RecentSubmission {
@@ -43,6 +47,10 @@ export default function Dashboard() {
     thisWeekSubmissions: 0,
     thisMonthSubmissions: 0,
     draftSubmissions: 0,
+    totalSubmissionsChange: 0,
+    thisWeekChange: 0,
+    thisMonthChange: 0,
+    draftsChange: 0,
   });
   const [recentSubmissions, setRecentSubmissions] = useState<
     RecentSubmission[]
@@ -76,32 +84,36 @@ export default function Dashboard() {
       value: stats.totalSubmissions.toLocaleString(),
       icon: FileText,
       color: "blue",
-      change: "+12%",
-      changeType: "positive",
+      change: `${stats.totalSubmissionsChange >= 0 ? "+" : ""}${
+        stats.totalSubmissionsChange
+      }%`,
+      changeType: stats.totalSubmissionsChange >= 0 ? "positive" : "negative",
     },
     {
       title: "This Week",
       value: stats.thisWeekSubmissions.toLocaleString(),
       icon: Calendar,
       color: "green",
-      change: "+8%",
-      changeType: "positive",
+      change: `${stats.thisWeekChange >= 0 ? "+" : ""}${stats.thisWeekChange}%`,
+      changeType: stats.thisWeekChange >= 0 ? "positive" : "negative",
     },
     {
       title: "This Month",
       value: stats.thisMonthSubmissions.toLocaleString(),
       icon: TrendingUp,
       color: "purple",
-      change: "+15%",
-      changeType: "positive",
+      change: `${stats.thisMonthChange >= 0 ? "+" : ""}${
+        stats.thisMonthChange
+      }%`,
+      changeType: stats.thisMonthChange >= 0 ? "positive" : "negative",
     },
     {
       title: "Drafts",
       value: stats.draftSubmissions.toLocaleString(),
       icon: Clock,
       color: "orange",
-      change: "-3%",
-      changeType: "negative",
+      change: `${stats.draftsChange >= 0 ? "+" : ""}${stats.draftsChange}%`,
+      changeType: stats.draftsChange >= 0 ? "positive" : "negative",
     },
   ];
 

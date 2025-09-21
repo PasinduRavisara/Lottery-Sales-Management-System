@@ -672,26 +672,51 @@ router.get("/export", authenticateToken, async (req, res) => {
 // Get dashboard statistics
 router.get("/dashboard", authenticateToken, async (req, res) => {
   try {
-    const today = new Date();
-    const startOfWeek = new Date(
-      today.setDate(today.getDate() - today.getDay())
+    const now = new Date();
+
+    // Calculate start of week (Sunday at 00:00:00 UTC)
+    const startOfWeek = new Date(now);
+    const dayOfWeek = startOfWeek.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
+    startOfWeek.setUTCHours(0, 0, 0, 0);
+
+    // Calculate start of month (1st day at 00:00:00 UTC)
+    const startOfMonth = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
     );
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    let whereClause = { isDraft: false };
+    // Calculate previous periods for percentage comparison
+    const startOfLastWeek = new Date(startOfWeek);
+    startOfLastWeek.setUTCDate(startOfLastWeek.getUTCDate() - 7);
 
-    // If user is sales promotion assistant, only show their submissions
-    if (req.user.role === "SALES_PROMOTION_ASSISTANT") {
-      whereClause.userId = req.user.id;
-    }
-    // Territory managers can see all submissions
+    const endOfLastWeek = new Date(startOfWeek);
+    endOfLastWeek.setUTCMilliseconds(-1); // Just before start of this week
 
-    // Total submissions
+    const startOfLastMonth = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)
+    );
+
+    const endOfLastMonth = new Date(startOfMonth);
+    endOfLastMonth.setUTCMilliseconds(-1); // Just before start of this month
+
+    // Define where clause for non-draft submissions
+    const baseWhereClause = { isDraft: false };
+    const whereClause =
+      req.user.role === "SALES_PROMOTION_ASSISTANT"
+        ? { ...baseWhereClause, userId: req.user.id }
+        : baseWhereClause;
+
+    // Define where clause for draft submissions
+    const draftWhereClause =
+      req.user.role === "SALES_PROMOTION_ASSISTANT"
+        ? { isDraft: true, userId: req.user.id }
+        : { isDraft: true };
+
+    // Current period counts
     const totalSubmissions = await prisma.salesSubmission.count({
       where: whereClause,
     });
 
-    // This week's submissions
     const thisWeekSubmissions = await prisma.salesSubmission.count({
       where: {
         ...whereClause,
@@ -699,7 +724,6 @@ router.get("/dashboard", authenticateToken, async (req, res) => {
       },
     });
 
-    // This month's submissions
     const thisMonthSubmissions = await prisma.salesSubmission.count({
       where: {
         ...whereClause,
@@ -707,13 +731,71 @@ router.get("/dashboard", authenticateToken, async (req, res) => {
       },
     });
 
-    // Draft submissions
     const draftSubmissions = await prisma.salesSubmission.count({
+      where: draftWhereClause,
+    });
+
+    // Previous period counts for percentage calculations
+    const lastWeekSubmissions = await prisma.salesSubmission.count({
       where: {
         ...whereClause,
-        isDraft: true,
+        createdAt: {
+          gte: startOfLastWeek,
+          lte: endOfLastWeek,
+        },
       },
     });
+
+    const lastMonthSubmissions = await prisma.salesSubmission.count({
+      where: {
+        ...whereClause,
+        createdAt: {
+          gte: startOfLastMonth,
+          lte: endOfLastMonth,
+        },
+      },
+    });
+
+    const previousTotalSubmissions = await prisma.salesSubmission.count({
+      where: {
+        ...whereClause,
+        createdAt: { lte: endOfLastMonth },
+      },
+    });
+
+    const lastMonthDraftSubmissions = await prisma.salesSubmission.count({
+      where: {
+        ...draftWhereClause,
+        createdAt: {
+          gte: startOfLastMonth,
+          lte: endOfLastMonth,
+        },
+      },
+    });
+
+    // Helper function to calculate percentage change
+    const calculatePercentageChange = (current, previous) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - previous) / previous) * 100);
+    };
+
+    // Calculate percentage changes
+    const totalSubmissionsChange = calculatePercentageChange(
+      totalSubmissions,
+      previousTotalSubmissions
+    );
+    const thisWeekChange = calculatePercentageChange(
+      thisWeekSubmissions,
+      lastWeekSubmissions
+    );
+    const thisMonthChange = calculatePercentageChange(
+      thisMonthSubmissions,
+      lastMonthSubmissions
+    );
+    const draftsChange = calculatePercentageChange(
+      draftSubmissions,
+      lastMonthDraftSubmissions
+    );
 
     // Recent submissions
     const recentSubmissions = await prisma.salesSubmission.findMany({
@@ -732,6 +814,10 @@ router.get("/dashboard", authenticateToken, async (req, res) => {
         thisWeekSubmissions,
         thisMonthSubmissions,
         draftSubmissions,
+        totalSubmissionsChange,
+        thisWeekChange,
+        thisMonthChange,
+        draftsChange,
       },
       recentSubmissions,
     });
