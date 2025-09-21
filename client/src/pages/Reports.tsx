@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Eye, Download, Trash2, FileSpreadsheet, Edit, ChevronUp, ChevronDown } from "lucide-react";
+import {
+  Eye,
+  Download,
+  Trash2,
+  FileSpreadsheet,
+  Edit,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import { submissionsAPI } from "../lib/api";
@@ -16,12 +24,12 @@ interface Submission {
   user: {
     id: string;
     username: string;
-    fullName?: string;
+    fullName: string;
   };
 }
 
-type SortField = 'status' | 'date' | 'submittedBy';
-type SortOrder = 'asc' | 'desc';
+type SortField = "status" | "date" | "submittedBy";
+type SortOrder = "asc" | "desc";
 
 export default function Reports() {
   const { user } = useAuth();
@@ -31,7 +39,7 @@ export default function Reports() {
   const [isExporting, setIsExporting] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [sortField, setSortField] = useState<SortField | null>(null);
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,47 +78,51 @@ export default function Reports() {
   };
 
   const handleSort = (field: SortField) => {
-    let newOrder: SortOrder = 'asc';
-    
-    if (sortField === field && sortOrder === 'asc') {
-      newOrder = 'desc';
+    let newOrder: SortOrder = "asc";
+
+    if (sortField === field && sortOrder === "asc") {
+      newOrder = "desc";
     }
-    
+
     setSortField(field);
     setSortOrder(newOrder);
-    
+
     const sorted = [...submissions].sort((a, b) => {
       let aValue: any;
       let bValue: any;
-      
+
       switch (field) {
-        case 'status':
-          aValue = a.isDraft ? 'Draft' : 'Completed';
-          bValue = b.isDraft ? 'Draft' : 'Completed';
+        case "status":
+          aValue = a.isDraft ? "Draft" : "Completed";
+          bValue = b.isDraft ? "Draft" : "Completed";
           break;
-        case 'date':
+        case "date":
           aValue = new Date(a.createdAt);
           bValue = new Date(b.createdAt);
           break;
-        case 'submittedBy':
-          aValue = (a.user.fullName || a.user.username).toLowerCase();
-          bValue = (b.user.fullName || b.user.username).toLowerCase();
+        case "submittedBy":
+          aValue = a.user.fullName.toLowerCase();
+          bValue = b.user.fullName.toLowerCase();
           break;
         default:
           return 0;
       }
-      
-      if (aValue < bValue) return newOrder === 'asc' ? -1 : 1;
-      if (aValue > bValue) return newOrder === 'asc' ? 1 : -1;
+
+      if (aValue < bValue) return newOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return newOrder === "asc" ? 1 : -1;
       return 0;
     });
-    
+
     setSortedSubmissions(sorted);
   };
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return null;
-    return sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />;
+    return sortOrder === "asc" ? (
+      <ChevronUp className="h-4 w-4" />
+    ) : (
+      <ChevronDown className="h-4 w-4" />
+    );
   };
 
   const handleDeleteSubmission = async (
@@ -261,32 +273,32 @@ export default function Reports() {
                   <tr className="table-header">
                     <th className="table-cell text-left">Dealer</th>
                     <th className="table-cell text-left">Location</th>
-                    <th 
+                    <th
                       className="table-cell text-center cursor-pointer hover:bg-blue-700 transition-colors"
-                      onClick={() => handleSort('status')}
+                      onClick={() => handleSort("status")}
                     >
                       <div className="flex items-center justify-center space-x-1">
                         <span>Status</span>
-                        {getSortIcon('status')}
+                        {getSortIcon("status")}
                       </div>
                     </th>
-                    <th 
+                    <th
                       className="table-cell text-center cursor-pointer hover:bg-blue-700 transition-colors"
-                      onClick={() => handleSort('date')}
+                      onClick={() => handleSort("date")}
                     >
                       <div className="flex items-center justify-center space-x-1">
                         <span>Date</span>
-                        {getSortIcon('date')}
+                        {getSortIcon("date")}
                       </div>
                     </th>
                     {user?.role === "TERRITORY_MANAGER" && (
-                      <th 
+                      <th
                         className="table-cell text-center cursor-pointer hover:bg-blue-700 transition-colors"
-                        onClick={() => handleSort('submittedBy')}
+                        onClick={() => handleSort("submittedBy")}
                       >
                         <div className="flex items-center justify-center space-x-1">
                           <span>Submitted By</span>
-                          {getSortIcon('submittedBy')}
+                          {getSortIcon("submittedBy")}
                         </div>
                       </th>
                     )}
@@ -294,7 +306,10 @@ export default function Reports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(sortedSubmissions.length > 0 ? sortedSubmissions : submissions).map((submission) => (
+                  {(sortedSubmissions.length > 0
+                    ? sortedSubmissions
+                    : submissions
+                  ).map((submission) => (
                     <tr key={submission.id} className="lottery-brand-row">
                       <td className="table-cell font-medium">
                         {submission.dealerName}
@@ -318,23 +333,24 @@ export default function Reports() {
                       </td>
                       {user?.role === "TERRITORY_MANAGER" && (
                         <td className="table-cell text-center">
-                          {submission.user.fullName || submission.user.username}
+                          {submission.user.fullName}
                         </td>
                       )}
                       <td className="table-cell text-center">
                         <div className="flex items-center justify-center space-x-2">
                           {/* Edit button - only show for drafts and for users who can edit them */}
-                          {submission.isDraft && 
-                           (user?.role === "TERRITORY_MANAGER" || 
-                            (user?.role === "SALES_PROMOTION_ASSISTANT" && submission.user.id === user.id)) && (
-                            <Link
-                              to={`/sales-form?edit=${submission.id}`}
-                              className="text-blue-600 hover:text-blue-800 p-1"
-                              title="Edit submission"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Link>
-                          )}
+                          {submission.isDraft &&
+                            (user?.role === "TERRITORY_MANAGER" ||
+                              (user?.role === "SALES_PROMOTION_ASSISTANT" &&
+                                submission.user.id === user.id)) && (
+                              <Link
+                                to={`/sales-form?edit=${submission.id}`}
+                                className="text-blue-600 hover:text-blue-800 p-1"
+                                title="Edit submission"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Link>
+                            )}
                           <Link
                             to={`/submission?id=${submission.id}`}
                             className="text-blue-600 hover:text-blue-800 p-1"

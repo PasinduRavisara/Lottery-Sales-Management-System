@@ -32,6 +32,7 @@ interface RecentSubmission {
   createdAt: string;
   user: {
     username: string;
+    fullName: string;
   };
 }
 
@@ -287,7 +288,7 @@ export default function Dashboard() {
                         {new Date(submission.createdAt).toLocaleDateString()}
                       </p>
                       <p className="text-xs text-gray-500">
-                        by {submission.user.username}
+                        by {submission.user.fullName}
                       </p>
                     </div>
                     <Link

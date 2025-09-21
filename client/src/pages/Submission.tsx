@@ -32,6 +32,7 @@ interface Submission {
   updatedAt: string;
   user: {
     username: string;
+    fullName: string;
   };
   dailySales: {
     brandName: string;
@@ -297,7 +298,7 @@ export default function SubmissionDetails() {
                     Submitted By
                   </p>
                   <p className="text-lg text-gray-900">
-                    {submission.user.username}
+                    {submission.user.fullName}
                   </p>
                 </div>
               </div>

@@ -29,7 +29,7 @@ router.get("/", authenticateToken, async (req, res) => {
       where: whereClause,
       include: {
         user: {
-          select: { id: true, username: true },
+          select: { id: true, username: true, fullName: true },
         },
         dailySales: true,
       },
@@ -64,7 +64,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
       where: { id },
       include: {
         user: {
-          select: { username: true },
+          select: { username: true, fullName: true },
         },
         dailySales: true,
       },
@@ -287,7 +287,7 @@ router.post(
         const result = await prisma.salesSubmission.findUnique({
           where: { id },
           include: {
-            user: { select: { username: true } },
+            user: { select: { username: true, fullName: true } },
             dailySales: true,
           },
         });
@@ -368,7 +368,7 @@ router.post(
       const result = await prisma.salesSubmission.findUnique({
         where: { id: submission.id },
         include: {
-          user: { select: { username: true } },
+          user: { select: { username: true, fullName: true } },
           dailySales: true,
         },
       });
