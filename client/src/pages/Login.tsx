@@ -37,6 +37,8 @@ export default function Login() {
       if (result.success) {
         toast.success("Login successful!");
         navigate("/dashboard");
+        // Refresh the page immediately to ensure all user data is properly loaded
+        window.location.reload();
       } else {
         toast.error(result.error || "Login failed");
       }
