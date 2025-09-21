@@ -352,7 +352,7 @@ const SalesForm = () => {
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
             <div className="loading-spinner mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading draft for editing...</p>
+            <p className="text-gray-600 dark:text-gray-300">Loading draft for editing...</p>
           </div>
         </div>
       ) : (
@@ -364,7 +364,7 @@ const SalesForm = () => {
                   ? "Edit Sales Submission"
                   : "Daily Sales Submission"}
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-300 mt-1">
                 {formData.id
                   ? "Update your draft submission"
                   : "Submit your daily lottery sales data"}
@@ -385,10 +385,10 @@ const SalesForm = () => {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     District *
                     {user?.district && (
-                      <span className="text-green-600 text-xs ml-2">
+                      <span className="text-green-600 dark:text-green-400 text-xs ml-2">
                         (Your assigned district)
                       </span>
                     )}
@@ -396,7 +396,7 @@ const SalesForm = () => {
                   <select
                     className={`input-field ${
                       user?.district && formData.district === user.district
-                        ? "bg-green-50 border-green-300"
+                        ? "bg-green-50 border-green-300 dark:bg-green-900 dark:border-green-700"
                         : ""
                     }`}
                     value={formData.district}
@@ -412,7 +412,7 @@ const SalesForm = () => {
                         value={district}
                         className={
                           user?.district === district
-                            ? "bg-green-100 font-medium"
+                            ? "bg-green-100 font-medium dark:bg-green-800 dark:text-green-100"
                             : ""
                         }
                       >
@@ -423,7 +423,7 @@ const SalesForm = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     City *
                   </label>
                   <input
@@ -435,7 +435,7 @@ const SalesForm = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     Dealer Name *
                   </label>
                   <input
@@ -449,7 +449,7 @@ const SalesForm = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     Dealer Number *
                   </label>
                   <input
@@ -493,7 +493,7 @@ const SalesForm = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     Assistant Name *
                   </label>
                   <input
@@ -507,7 +507,7 @@ const SalesForm = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     Sales Method *
                   </label>
                   <select
@@ -547,7 +547,7 @@ const SalesForm = () => {
                 </div>
               </div>
               <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Sales Location *
                 </label>
                 <textarea
@@ -564,7 +564,7 @@ const SalesForm = () => {
 
             {/* Daily Sales Table */}
             <div className="card">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                 Daily Lottery Sales Quantity (Tickets)
               </h2>
               <div className="overflow-x-auto">
@@ -618,14 +618,14 @@ const SalesForm = () => {
                             />
                           </td>
                         ))}
-                        <td className="table-cell text-center font-semibold text-blue-600">
+                        <td className="table-cell text-center font-semibold text-blue-600 dark:text-blue-400">
                           {calculateTotal(sale)}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr className="bg-gray-50 font-semibold">
+                    <tr className="bg-gray-50 dark:bg-gray-800 font-semibold">
                       <td className="table-cell" colSpan={2}>
                         Grand Total
                       </td>
@@ -641,13 +641,13 @@ const SalesForm = () => {
                         return (
                           <td
                             key={day}
-                            className="table-cell text-center text-blue-600"
+                            className="table-cell text-center text-blue-600 dark:text-blue-400"
                           >
                             {dayTotal}
                           </td>
                         );
                       })}
-                      <td className="table-cell text-center text-blue-600 text-lg">
+                      <td className="table-cell text-center text-blue-600 dark:text-blue-400 text-lg">
                         {calculateGrandTotal()}
                       </td>
                     </tr>

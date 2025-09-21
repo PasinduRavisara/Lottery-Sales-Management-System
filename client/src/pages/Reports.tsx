@@ -243,11 +243,11 @@ export default function Reports() {
                 </button>
 
                 {showExportDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-600 z-10">
                     <div className="py-1">
                       <button
                         onClick={() => handleExport("csv")}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                         disabled={isExporting}
                       >
                         <Download className="h-4 w-4 mr-3" />
@@ -255,7 +255,7 @@ export default function Reports() {
                       </button>
                       <button
                         onClick={() => handleExport("excel")}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                         disabled={isExporting}
                       >
                         <FileSpreadsheet className="h-4 w-4 mr-3" />

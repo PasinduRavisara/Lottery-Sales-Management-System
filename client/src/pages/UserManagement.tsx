@@ -193,7 +193,7 @@ export default function UserManagement() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Access Denied
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             You need territory manager privileges to access user management.
           </p>
         </div>
@@ -207,10 +207,10 @@ export default function UserManagement() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               User Management
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 dark:text-gray-300 mt-1">
               Manage system users and their access levels
             </p>
           </div>
@@ -230,13 +230,13 @@ export default function UserManagement() {
             animate={{ opacity: 1, y: 0 }}
             className="card"
           >
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
               Add New User
             </h2>
             <form onSubmit={handleAddUser} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     Username *
                   </label>
                   <input
@@ -254,7 +254,7 @@ export default function UserManagement() {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     Full Name *
                   </label>
                   <input
@@ -267,12 +267,12 @@ export default function UserManagement() {
                     required
                     placeholder="e.g., John Doe"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Display name for the system
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     Password *
                   </label>
                   <div className="relative">
@@ -299,7 +299,7 @@ export default function UserManagement() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     Role *
                   </label>
                   <select
@@ -321,7 +321,7 @@ export default function UserManagement() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     Assigned District (Optional)
                   </label>
                   <select
@@ -366,10 +366,10 @@ export default function UserManagement() {
         {/* Users List */}
         <div className="card">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               System Users
             </h2>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
               Total: {users.length} users
             </div>
           </div>
@@ -377,7 +377,7 @@ export default function UserManagement() {
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="loading-spinner mr-4"></div>
-              <p className="text-gray-600">Loading users...</p>
+              <p className="text-gray-600 dark:text-gray-300">Loading users...</p>
             </div>
           ) : users.length > 0 ? (
             <div className="overflow-x-auto">
@@ -386,7 +386,7 @@ export default function UserManagement() {
                   <tr className="table-header">
                     <th className="table-cell text-left">Full Name</th>
                     <th
-                      className="table-cell text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      className="table-cell text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none"
                       onClick={() => handleSort("role")}
                       title="Click to sort by role"
                     >
@@ -404,7 +404,7 @@ export default function UserManagement() {
                       </div>
                     </th>
                     <th
-                      className="table-cell text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      className="table-cell text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none"
                       onClick={() => handleSort("district")}
                       title="Click to sort by district"
                     >
@@ -422,7 +422,7 @@ export default function UserManagement() {
                       </div>
                     </th>
                     <th
-                      className="table-cell text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      className="table-cell text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none"
                       onClick={() => handleSort("createdAt")}
                       title="Click to sort by creation date"
                     >
@@ -452,8 +452,8 @@ export default function UserManagement() {
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             userData.role === "TERRITORY_MANAGER"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-blue-100 text-blue-800"
+                              ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                              : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                           }`}
                         >
                           {userData.role === "TERRITORY_MANAGER"
@@ -462,7 +462,7 @@ export default function UserManagement() {
                         </span>
                       </td>
                       <td className="table-cell text-center">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
                           {userData.district || "Not assigned"}
                         </span>
                       </td>
@@ -505,8 +505,8 @@ export default function UserManagement() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <UserPlus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No users found</p>
+              <UserPlus className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-300">No users found</p>
               <button
                 onClick={() => setShowAddForm(true)}
                 className="btn-primary mt-4 inline-flex items-center"
