@@ -96,9 +96,18 @@ export const useAuth = () => {
     });
   };
 
+  const updateUser = (updatedUser: User) => {
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    setAuthState((prev) => ({
+      ...prev,
+      user: updatedUser,
+    }));
+  };
+
   return {
     ...authState,
     login,
     logout,
+    updateUser,
   };
 };

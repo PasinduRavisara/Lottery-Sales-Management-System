@@ -6,6 +6,7 @@ import SalesForm from "./pages/SalesForm";
 import Reports from "./pages/Reports";
 import Submission from "./pages/Submission";
 import UserManagement from "./pages/UserManagement";
+import Profile from "./pages/Profile";
 
 function App() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -66,6 +67,12 @@ function App() {
           ) : (
             <Navigate to="/login" replace />
           )
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          isAuthenticated ? <Profile /> : <Navigate to="/login" replace />
         }
       />
     </Routes>

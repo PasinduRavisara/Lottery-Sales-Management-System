@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require("@prisma/client");
+const { authenticateToken } = require("../middleware/auth");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -256,5 +257,89 @@ router.delete(
     }
   }
 );
+
+// Update user profile endpoint
+router.put("/profile", authenticateToken, async (req, res) => {
+  try {
+    const { fullName } = req.body;
+    const userId = req.user.id;
+
+    if (!fullName || fullName.trim() === "") {
+      return res.status(400).json({ message: "Full name is required" });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { fullName: fullName.trim() },
+      select: {
+        id: true,
+        username: true,
+        fullName: true,
+        role: true,
+        district: true,
+      },
+    });
+
+    res.json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Change password endpoint
+router.put("/change-password", authenticateToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        message: "Current password and new password are required",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: "New password must be at least 6 characters",
+      });
+    }
+
+    // Get current user
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify current password
+    const isValidPassword = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash
+    );
+    if (!isValidPassword) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: hashedNewPassword },
+    });
+
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 module.exports = router;
