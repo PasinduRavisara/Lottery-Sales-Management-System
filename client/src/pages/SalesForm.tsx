@@ -23,13 +23,17 @@ const SalesForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [customSalesMethod, setCustomSalesMethod] = useState("");
-  
+
   // Navigation guard states
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showNavigationWarning, setShowNavigationWarning] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(
+    null
+  );
+  const [userHasInteracted, setUserHasInteracted] = useState(false);
   const originalFormDataRef = useRef<any>(null);
-  
+  const isInitializingRef = useRef(true);
+
   const [formData, setFormData] = useState({
     id: "", // Add id field for updates
     district: user?.district || "",
@@ -58,6 +62,8 @@ const SalesForm = () => {
         ...prev,
         district: user.district || "",
       }));
+      // Mark as initialization
+      isInitializingRef.current = true;
     }
   }, [user?.district, editId]);
 
@@ -68,42 +74,55 @@ const SalesForm = () => {
     }
   }, [editId]);
 
-  // Store original form data for comparison
+  // Store original form data for comparison after initialization
   useEffect(() => {
-    if (!originalFormDataRef.current) {
-      originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
+    if (isInitializingRef.current) {
+      // Set original data after a short delay to ensure all initialization is complete
+      const timer = setTimeout(() => {
+        originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
+        isInitializingRef.current = false;
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [formData]);
 
-  // Check for unsaved changes
+  // Check for unsaved changes only after user interaction (excluding district field)
   useEffect(() => {
-    if (!originalFormDataRef.current) return;
-    
-    const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalFormDataRef.current);
-    setHasUnsavedChanges(hasChanges);
-  }, [formData]);
+    if (!originalFormDataRef.current || isInitializingRef.current) return;
+
+    // Create copies of form data excluding the district field for comparison
+    const { district: currentDistrict, ...currentDataWithoutDistrict } =
+      formData;
+    const { district: originalDistrict, ...originalDataWithoutDistrict } =
+      originalFormDataRef.current;
+
+    const hasChanges =
+      JSON.stringify(currentDataWithoutDistrict) !==
+      JSON.stringify(originalDataWithoutDistrict);
+    setHasUnsavedChanges(hasChanges && userHasInteracted);
+  }, [formData, userHasInteracted]);
 
   // Navigation guard - intercept navigation attempts
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = '';
+        e.returnValue = "";
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
   // Intercept Link clicks and other navigation
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (!hasUnsavedChanges) return;
-      
+
       const target = e.target as HTMLElement;
-      const link = target.closest('a[href]') as HTMLAnchorElement;
-      
+      const link = target.closest("a[href]") as HTMLAnchorElement;
+
       if (link && link.href && !link.href.includes(location.pathname)) {
         e.preventDefault();
         e.stopPropagation();
@@ -113,23 +132,14 @@ const SalesForm = () => {
       }
     };
 
-    document.addEventListener('click', handleClick, true);
-    return () => document.removeEventListener('click', handleClick, true);
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
   }, [hasUnsavedChanges, location.pathname]);
-
-  // Handle navigation blocking for React Router navigation
-  const handleNavigation = (path: string) => {
-    if (hasUnsavedChanges) {
-      setPendingNavigation(path);
-      setShowNavigationWarning(true);
-    } else {
-      navigate(path);
-    }
-  };
 
   // Navigation warning dialog handlers
   const handleDiscardChanges = () => {
     setHasUnsavedChanges(false);
+    setUserHasInteracted(false);
     originalFormDataRef.current = null;
     setShowNavigationWarning(false);
     if (pendingNavigation) {
@@ -142,6 +152,7 @@ const SalesForm = () => {
       // Use the existing saveDraft function
       await handleSaveAsDraft();
       setHasUnsavedChanges(false);
+      setUserHasInteracted(false);
       originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
       setShowNavigationWarning(false);
       if (pendingNavigation) {
@@ -210,6 +221,8 @@ const SalesForm = () => {
       setTimeout(() => {
         originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
         setHasUnsavedChanges(false);
+        setUserHasInteracted(false);
+        isInitializingRef.current = false;
       }, 100);
 
       toast.success("Draft loaded for editing");
@@ -222,6 +235,7 @@ const SalesForm = () => {
   };
 
   const handleInputChange = (field: string, value: string) => {
+    setUserHasInteracted(true);
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -229,6 +243,7 @@ const SalesForm = () => {
   };
 
   const handleNumericInputChange = (field: string, value: string) => {
+    setUserHasInteracted(true);
     // Only allow numeric values and respect exact length for dealer number
     const numericValue = value.replace(/[^0-9]/g, "");
     const maxLength =
@@ -246,6 +261,7 @@ const SalesForm = () => {
     day: string,
     value: number
   ) => {
+    setUserHasInteracted(true);
     setFormData((prev) => ({
       ...prev,
       dailySales: prev.dailySales.map((sale, index) =>
@@ -255,6 +271,7 @@ const SalesForm = () => {
   };
 
   const handleSalesMethodChange = (value: string) => {
+    setUserHasInteracted(true);
     setFormData((prev) => ({ ...prev, salesMethod: value }));
     if (value !== "Other") {
       setCustomSalesMethod("");
@@ -262,6 +279,7 @@ const SalesForm = () => {
   };
 
   const handleCustomSalesMethodChange = (value: string) => {
+    setUserHasInteracted(true);
     setCustomSalesMethod(value);
     setFormData((prev) => ({ ...prev, salesMethod: value }));
   };
@@ -345,6 +363,7 @@ const SalesForm = () => {
         // Reset unsaved changes state
         originalFormDataRef.current = null;
         setHasUnsavedChanges(false);
+        setUserHasInteracted(false);
       } else {
         // Create new submission
         await submissionsAPI.create({
@@ -357,6 +376,7 @@ const SalesForm = () => {
         // Reset unsaved changes state
         originalFormDataRef.current = null;
         setHasUnsavedChanges(false);
+        setUserHasInteracted(false);
       }
 
       // Reset form for next submission only if it was a new submission
@@ -415,6 +435,7 @@ const SalesForm = () => {
         // Reset unsaved changes state
         originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
         setHasUnsavedChanges(false);
+        setUserHasInteracted(false);
       } else {
         // Create new draft
         const response = await submissionsAPI.create(draftData);
@@ -426,6 +447,7 @@ const SalesForm = () => {
         // Reset unsaved changes state
         originalFormDataRef.current = JSON.parse(JSON.stringify(formData));
         setHasUnsavedChanges(false);
+        setUserHasInteracted(false);
       }
     } catch (error) {
       console.error("Save draft error:", error);
@@ -461,6 +483,7 @@ const SalesForm = () => {
       // Reset unsaved changes state
       originalFormDataRef.current = null;
       setHasUnsavedChanges(false);
+      setUserHasInteracted(false);
       toast.success("Form cleared successfully");
     }
   };
@@ -833,7 +856,10 @@ const SalesForm = () => {
             >
               <div className="flex items-center space-x-3 mb-4">
                 <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
-                  <AlertTriangle className="text-yellow-600 dark:text-yellow-400" size={24} />
+                  <AlertTriangle
+                    className="text-yellow-600 dark:text-yellow-400"
+                    size={24}
+                  />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white">
                   Unsaved Changes
@@ -841,7 +867,8 @@ const SalesForm = () => {
               </div>
 
               <p className="text-gray-600 dark:text-gray-300 mb-6">
-                You have unsaved changes in your sales form. What would you like to do?
+                You have unsaved changes in your sales form. What would you like
+                to do?
               </p>
 
               <div className="space-y-3">
