@@ -93,6 +93,13 @@ export default function Profile() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
+    // COMMENTED OUT: Prevent full name editing
+    // Remove this condition if you want to allow full name editing in the future
+    if (name === "fullName") {
+      return; // Don't allow full name changes
+    }
+
     setProfileData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -103,6 +110,41 @@ export default function Profile() {
       profilePicture: newPictureUrl,
     });
   };
+
+  // COMMENTED OUT: Full name update functionality
+  // Uncomment this function if you want to allow users to edit their full names in the future
+  /*
+  const updateProfileWithFullName = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          fullName: profileData.fullName,
+          district: profileData.district,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        updateUser(data.user);
+        showNotification("success", "Profile updated successfully!");
+      } else {
+        showNotification("error", data.error || "Failed to update profile");
+      }
+    } catch (error) {
+      showNotification("error", "An error occurred while updating profile");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  */
 
   const updateProfile = async () => {
     setIsLoading(true);
@@ -115,7 +157,7 @@ export default function Profile() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          fullName: profileData.fullName,
+          // fullName: profileData.fullName, // COMMENTED OUT: Users cannot edit full name
           district: profileData.district,
         }),
       });
@@ -322,15 +364,19 @@ export default function Profile() {
                         id="fullName"
                         name="fullName"
                         value={profileData.fullName}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder="Enter your full name"
+                        readOnly
+                        disabled
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12 bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                        placeholder="Full name cannot be edited"
                       />
                       <User
                         className="absolute left-4 top-3.5 text-gray-400 dark:text-gray-500"
                         size={20}
                       />
                     </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Full name can only be changed by system administrators
+                    </p>
                   </div>
 
                   <div>

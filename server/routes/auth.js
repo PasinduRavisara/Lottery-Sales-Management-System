@@ -298,13 +298,23 @@ router.put("/profile", authenticateToken, async (req, res) => {
     const { fullName, district, profilePicture } = req.body;
     const userId = req.user.id;
 
+    // COMMENTED OUT: Full name validation - users can no longer edit their full names
+    // Uncomment this validation if you want to allow full name editing in the future
+    /*
     if (!fullName || fullName.trim() === "") {
       return res.status(400).json({ message: "Full name is required" });
     }
+    */
 
-    const updateData = {
-      fullName: fullName.trim(),
-    };
+    const updateData = {};
+
+    // COMMENTED OUT: Full name update - users can no longer edit their full names
+    // Uncomment this if you want to allow full name editing in the future
+    /*
+    if (fullName && fullName.trim() !== "") {
+      updateData.fullName = fullName.trim();
+    }
+    */
 
     // Add district if provided
     if (district !== undefined) {
