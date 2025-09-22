@@ -1,6 +1,6 @@
 # User Management Guide
 
-This guide explains how to add users to the Lottery Sales Management System. There are three methods available for adding users:
+This guide explains how to add users to the DLB SalesHub. There are three methods available for adding users:
 
 ## 🔐 Authentication Note
 
@@ -210,4 +210,4 @@ node quick-add-user.js tom_sales password789
 
 ---
 
-**Created for secure user management in the Lottery Sales Management System**
+**Created for secure user management in the DLB SalesHub**

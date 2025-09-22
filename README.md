@@ -1,4 +1,4 @@
-# 🎲 Lottery Sales Management System
+# 🎲 DLB SalesHub
 
 A comprehensive web application for tracking daily lottery sales across different brands and locations. Built with modern technologies and designed to match the exact form layout from the provided image.
 
@@ -321,4 +321,4 @@ For support and questions:
 
 ---
 
-**Built with ❤️ for efficient lottery sales management**
+**Built with ❤️ for efficient sales management**

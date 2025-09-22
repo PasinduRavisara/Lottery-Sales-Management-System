@@ -1,7 +1,7 @@
 {
   "name": "lottery-sales-server",
   "version": "1.0.0",
-  "description": "Backend API for Lottery Sales Management System",
+  "description": "Backend API for DLB SalesHub",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

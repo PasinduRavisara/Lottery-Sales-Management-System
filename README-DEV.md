@@ -1,4 +1,4 @@
-# Lottery Sales Management System - Development Guide
+# DLB SalesHub - Development Guide
 
 ## Quick Start
 

@@ -66,10 +66,10 @@ export default function Login() {
             />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-            Sign in to your account
+            DLB SalesHub
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Lottery Sales Management System
+            Sign in to your account
           </p>
         </motion.div>
 
@@ -152,7 +152,7 @@ export default function Login() {
             </button>
           </div>
 
-          <div className="text-center mt-6">
+          {/* <div className="text-center mt-6">
             <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                 Account Information
@@ -170,6 +170,7 @@ export default function Login() {
                 </p>
                 <div className="mt-3 pt-2 border-t border-blue-200 dark:border-blue-600">
                   <p className="text-blue-600 dark:text-blue-300">
+                  <p className="text-blue-600 dark:text-blue-300">
                     <strong>Examples:</strong>
                   </p>
                   <p>Username: "John Smith" → Password: "john123"</p>
@@ -179,7 +180,7 @@ export default function Login() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         </motion.form>
       </div>
     </div>
